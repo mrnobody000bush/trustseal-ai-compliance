@@ -9,38 +9,188 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WidgetDemoRouteImport } from './routes/widget-demo'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as ApiPublicWidgetEventRouteImport } from './routes/api/public/widget-event'
+import { Route as AuthenticatedSitesSiteIdRouteImport } from './routes/_authenticated.sites.$siteId'
+import { Route as ApiPublicWidgetSiteIdRouteImport } from './routes/api/public/widget.$siteId'
 
+const WidgetDemoRoute = WidgetDemoRouteImport.update({
+  id: '/widget-demo',
+  path: '/widget-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const ApiPublicWidgetEventRoute = ApiPublicWidgetEventRouteImport.update({
+  id: '/api/public/widget-event',
+  path: '/api/public/widget-event',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSitesSiteIdRoute =
+  AuthenticatedSitesSiteIdRouteImport.update({
+    id: '/sites/$siteId',
+    path: '/sites/$siteId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const ApiPublicWidgetSiteIdRoute = ApiPublicWidgetSiteIdRouteImport.update({
+  id: '/api/public/widget/$siteId',
+  path: '/api/public/widget/$siteId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/auth': typeof AuthRoute
+  '/pricing': typeof PricingRoute
+  '/widget-demo': typeof WidgetDemoRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
+  '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
+  '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/auth': typeof AuthRoute
+  '/pricing': typeof PricingRoute
+  '/widget-demo': typeof WidgetDemoRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
+  '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
+  '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/about': typeof AboutRoute
+  '/auth': typeof AuthRoute
+  '/pricing': typeof PricingRoute
+  '/widget-demo': typeof WidgetDemoRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
+  '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
+  '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/auth'
+    | '/pricing'
+    | '/widget-demo'
+    | '/dashboard'
+    | '/sites/$siteId'
+    | '/api/public/widget-event'
+    | '/api/public/widget/$siteId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/auth'
+    | '/pricing'
+    | '/widget-demo'
+    | '/dashboard'
+    | '/sites/$siteId'
+    | '/api/public/widget-event'
+    | '/api/public/widget/$siteId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/about'
+    | '/auth'
+    | '/pricing'
+    | '/widget-demo'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/sites/$siteId'
+    | '/api/public/widget-event'
+    | '/api/public/widget/$siteId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AboutRoute: typeof AboutRoute
+  AuthRoute: typeof AuthRoute
+  PricingRoute: typeof PricingRoute
+  WidgetDemoRoute: typeof WidgetDemoRoute
+  ApiPublicWidgetEventRoute: typeof ApiPublicWidgetEventRoute
+  ApiPublicWidgetSiteIdRoute: typeof ApiPublicWidgetSiteIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/widget-demo': {
+      id: '/widget-demo'
+      path: '/widget-demo'
+      fullPath: '/widget-demo'
+      preLoaderRoute: typeof WidgetDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +198,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/public/widget-event': {
+      id: '/api/public/widget-event'
+      path: '/api/public/widget-event'
+      fullPath: '/api/public/widget-event'
+      preLoaderRoute: typeof ApiPublicWidgetEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/sites/$siteId': {
+      id: '/_authenticated/sites/$siteId'
+      path: '/sites/$siteId'
+      fullPath: '/sites/$siteId'
+      preLoaderRoute: typeof AuthenticatedSitesSiteIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/public/widget/$siteId': {
+      id: '/api/public/widget/$siteId'
+      path: '/api/public/widget/$siteId'
+      fullPath: '/api/public/widget/$siteId'
+      preLoaderRoute: typeof ApiPublicWidgetSiteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSitesSiteIdRoute: typeof AuthenticatedSitesSiteIdRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSitesSiteIdRoute: AuthenticatedSitesSiteIdRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AboutRoute: AboutRoute,
+  AuthRoute: AuthRoute,
+  PricingRoute: PricingRoute,
+  WidgetDemoRoute: WidgetDemoRoute,
+  ApiPublicWidgetEventRoute: ApiPublicWidgetEventRoute,
+  ApiPublicWidgetSiteIdRoute: ApiPublicWidgetSiteIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
