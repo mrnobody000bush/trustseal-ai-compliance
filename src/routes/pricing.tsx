@@ -19,11 +19,11 @@ export const Route = createFileRoute("/pricing")({
 
 function PricingPage() {
   const { t } = useTranslation();
-  const plans = [
+  const plans: Array<{ key: string; price: number; features: string[]; scans: number; featured?: boolean }> = [
     { key: "starter", price: 29, features: ["sites1", "scansM"], scans: 5 },
     { key: "growth", price: 99, features: ["sites5", "scansM", "widget", "reports"], scans: 50, featured: true },
     { key: "scale", price: 299, features: ["sitesU", "scansM", "widget", "reports", "support"], scans: 500 },
-  ] as const;
+  ];
 
   return (
     <div className="min-h-screen bg-background">
