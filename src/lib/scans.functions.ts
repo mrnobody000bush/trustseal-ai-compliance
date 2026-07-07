@@ -98,12 +98,12 @@ Be specific and actionable. Return 4–8 findings.`;
 
     let report: z.infer<typeof ReportSchema>;
     try {
-      const { experimental_output } = await generateText({
+      const { object } = await generateObject({
         model: gateway("google/gemini-3-flash-preview"),
-        experimental_output: Output.object({ schema: ReportSchema }),
+        schema: ReportSchema,
         prompt,
       });
-      report = experimental_output;
+      report = object;
     } catch (err) {
       if (NoObjectGeneratedError.isInstance(err)) {
         try {
