@@ -1,0 +1,127 @@
+{
+  "brand": "TrustSeal",
+  "nav": {
+    "product": "Product",
+    "pricing": "Pricing",
+    "about": "About",
+    "demo": "Live demo",
+    "signIn": "Sign in",
+    "getStarted": "Get started",
+    "dashboard": "Dashboard",
+    "signOut": "Sign out"
+  },
+  "landing": {
+    "eyebrow": "EU AI Act ready · August 2026",
+    "title": "Compliance + trust in a single line of code",
+    "subtitle": "Scan your store for EU AI Act violations and install a trust widget that converts visitors into buyers.",
+    "ctaPrimary": "Start free scan",
+    "ctaSecondary": "See widget demo",
+    "features": {
+      "title": "Two problems. One widget.",
+      "complianceTitle": "AI Act Compliance",
+      "complianceBody": "Our AI scans your storefront, detects unlabeled AI-generated content, missing watermarks, opaque pricing algorithms, and gives you an audit-ready report.",
+      "trustTitle": "Buyer Trust",
+      "trustBody": "A stylish trust badge with verified reviews, transparency labels, and an AI assistant that answers buyer questions in real time.",
+      "installTitle": "60-second install",
+      "installBody": "One line of JavaScript. No SDK, no plugin, no developer meeting. Works on Shopify, WooCommerce, custom stacks."
+    },
+    "how": {
+      "title": "How it works",
+      "step1Title": "Add your store",
+      "step1Body": "Paste your storefront URL. We validate the domain.",
+      "step2Title": "AI scans the site",
+      "step2Body": "Gemini analyzes pages against the EU AI Act checklist and returns a compliance score with findings.",
+      "step3Title": "Embed the widget",
+      "step3Body": "Copy one line of code. Configure colors and position from your dashboard."
+    },
+    "trustedBy": "Built for modern e-commerce teams",
+    "faqTitle": "FAQ",
+    "footNote": "Not legal advice. TrustSeal helps you prepare for compliance reviews; final decisions rest with you and your counsel."
+  },
+  "pricing": {
+    "title": "Simple pricing",
+    "subtitle": "Cancel anytime. All plans include unlimited widget impressions.",
+    "starter": "Starter",
+    "growth": "Growth",
+    "scale": "Scale",
+    "perMonth": "/mo",
+    "starterDesc": "For a single store getting AI Act ready.",
+    "growthDesc": "For growing brands who need scans + trust widget on multiple sites.",
+    "scaleDesc": "For agencies and multi-brand retailers.",
+    "features": {
+      "sites1": "1 store",
+      "sites5": "Up to 5 stores",
+      "sitesU": "Unlimited stores",
+      "scansM": "monthly scans",
+      "widget": "Trust widget with AI chat",
+      "reports": "Audit-ready reports",
+      "support": "Priority support"
+    },
+    "cta": "Start free"
+  },
+  "about": {
+    "title": "Why TrustSeal",
+    "body1": "In August 2026 the EU AI Act's core obligations kick in. Any online store that uses AI to personalize prices, generate product images, run recommendation engines, or reply with a chatbot must label those systems, disclose training data provenance, and maintain risk documentation.",
+    "body2": "At the same time, buyers are more skeptical than ever. Reviews are gamed. Photos are AI-generated. Stores lose 60–70% of visitors at the checkout because trust never crossed the finish line.",
+    "body3": "TrustSeal solves both sides with one product: an AI compliance scanner for the operator, and a customer-facing trust widget that turns transparency into conversion."
+  },
+  "auth": {
+    "signInTitle": "Sign in to TrustSeal",
+    "signUpTitle": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "toggleToSignUp": "New here? Create an account",
+    "toggleToSignIn": "Already have an account? Sign in",
+    "google": "Continue with Google",
+    "or": "or"
+  },
+  "dashboard": {
+    "title": "Your stores",
+    "empty": "No stores connected yet.",
+    "addSite": "Add store",
+    "openSite": "Open",
+    "status": "Status",
+    "score": "Score",
+    "lastScan": "Last scan",
+    "never": "Never",
+    "newSite": {
+      "title": "Add a new store",
+      "domain": "Domain (example.com)",
+      "name": "Store name",
+      "description": "Short description",
+      "submit": "Add store"
+    }
+  },
+  "site": {
+    "back": "Back to dashboard",
+    "scan": "Run new scan",
+    "scanning": "Scanning…",
+    "embed": "Embed code",
+    "embedHelp": "Paste this before </body> on your storefront.",
+    "widget": "Widget configuration",
+    "theme": "Theme",
+    "accent": "Accent color",
+    "position": "Position",
+    "save": "Save widget",
+    "reports": "Reports",
+    "noReports": "No scans yet. Run your first scan to generate a report.",
+    "findings": "Findings",
+    "summary": "Summary",
+    "delete": "Delete store",
+    "confirmDelete": "Delete this store and all its scans?"
+  },
+  "widget": {
+    "trustScore": "Trust score",
+    "verified": "Verified by TrustSeal",
+    "askQuestion": "Ask about this store",
+    "send": "Send",
+    "typing": "Thinking…",
+    "aiCompliant": "AI Act compliant",
+    "reviewsVerified": "Reviews verified",
+    "privacyOk": "Privacy respected",
+    "close": "Close"
+  }
+}
