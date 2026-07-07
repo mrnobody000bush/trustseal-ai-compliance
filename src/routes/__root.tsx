@@ -113,7 +113,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  useEffect(() => { initI18n(); }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
