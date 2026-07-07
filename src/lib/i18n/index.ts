@@ -26,4 +26,7 @@ export function initI18n() {
   return i18n;
 }
 
+// Initialize immediately so SSR and client both have translations.
+initI18n();
+
 export default i18n;
