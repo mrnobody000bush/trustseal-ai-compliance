@@ -1,0 +1,133 @@
+import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase.rpc("has_role", {
+    _user_id: userId,
+    _role: "admin",
+  });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Forbidden");
+}
+
+export const checkIsAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    return { isAdmin: !!data };
+  });
+
+export const getAdminStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [sitesRes, scansRes, eventsRes, profilesRes] = await Promise.all([
+      supabaseAdmin
+        .from("sites")
+        .select("id,name,domain,user_id,is_active,created_at")
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("compliance_scans")
+        .select("id,site_id,score,status,created_at")
+        .order("created_at", { ascending: false })
+        .limit(500),
+      supabaseAdmin
+        .from("widget_events")
+        .select("id,event_type,created_at")
+        .order("created_at", { ascending: false })
+        .limit(2000),
+      supabaseAdmin.from("profiles").select("id,email,full_name,created_at"),
+    ]);
+
+    const sites = sitesRes.data ?? [];
+    const scans = scansRes.data ?? [];
+    const events = eventsRes.data ?? [];
+    const profiles = profilesRes.data ?? [];
+
+    const activeClientIds = new Set(sites.filter((s: any) => s.is_active).map((s: any) => s.user_id));
+    const activeClients = activeClientIds.size;
+
+    // Projected MRR: $49 per active client (starter tier proxy)
+    const mrr = activeClients * 49;
+    const arr = mrr * 12;
+
+    // Build 14-day AI load series from scans + widget events
+    const days: { date: string; scans: number; events: number }[] = [];
+    const now = new Date();
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      days.push({ date: key, scans: 0, events: 0 });
+    }
+    const dayMap = new Map(days.map((d) => [d.date, d]));
+    for (const s of scans) {
+      const k = new Date(s.created_at).toISOString().slice(0, 10);
+      const row = dayMap.get(k);
+      if (row) row.scans += 1;
+    }
+    for (const e of events) {
+      const k = new Date(e.created_at).toISOString().slice(0, 10);
+      const row = dayMap.get(k);
+      if (row) row.events += 1;
+    }
+
+    // Aggregate per site
+    const siteMap = new Map<string, any>();
+    for (const s of sites) {
+      siteMap.set(s.id, {
+        id: s.id,
+        name: s.name,
+        domain: s.domain,
+        user_id: s.user_id,
+        is_active: s.is_active,
+        created_at: s.created_at,
+        scan_count: 0,
+        avg_score: null as number | null,
+        last_scan: null as string | null,
+      });
+    }
+    const scoreAgg = new Map<string, { total: number; count: number }>();
+    for (const s of scans) {
+      const row = siteMap.get(s.site_id);
+      if (!row) continue;
+      row.scan_count += 1;
+      if (!row.last_scan || s.created_at > row.last_scan) row.last_scan = s.created_at;
+      if (typeof s.score === "number") {
+        const agg = scoreAgg.get(s.site_id) ?? { total: 0, count: 0 };
+        agg.total += s.score;
+        agg.count += 1;
+        scoreAgg.set(s.site_id, agg);
+      }
+    }
+    for (const [id, agg] of scoreAgg) {
+      const row = siteMap.get(id);
+      if (row) row.avg_score = Math.round(agg.total / agg.count);
+    }
+    const siteList = Array.from(siteMap.values());
+
+    // Map user email onto sites
+    const profMap = new Map(profiles.map((p: any) => [p.id, p]));
+    for (const s of siteList) {
+      const p: any = profMap.get(s.user_id);
+      s.owner_email = p?.email ?? null;
+    }
+
+    return {
+      mrr,
+      arr,
+      activeClients,
+      totalClients: profiles.length,
+      totalSites: sites.length,
+      activeSites: sites.filter((s: any) => s.is_active).length,
+      totalScans: scans.length,
+      totalEvents: events.length,
+      load: days,
+      sites: siteList,
+    };
+  });
