@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { SiteHeader } from "@/components/site-header";
+import { AdminToggle } from "@/components/admin-toggle";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -28,6 +29,7 @@ function AuthedLayout() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <Outlet />
+      <AdminToggle />
     </div>
   );
 }
