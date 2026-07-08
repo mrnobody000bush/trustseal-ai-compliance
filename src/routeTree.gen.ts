@@ -16,6 +16,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedAdminPanelRouteImport } from './routes/_authenticated.admin-panel'
 import { Route as ApiPublicWidgetEventRouteImport } from './routes/api/public/widget-event'
 import { Route as AuthenticatedSitesSiteIdRouteImport } from './routes/_authenticated.sites.$siteId'
 import { Route as ApiPublicWidgetSiteIdRouteImport } from './routes/api/public/widget.$siteId'
@@ -54,6 +55,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminPanelRoute = AuthenticatedAdminPanelRouteImport.update({
+  id: '/admin-panel',
+  path: '/admin-panel',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const ApiPublicWidgetEventRoute = ApiPublicWidgetEventRouteImport.update({
   id: '/api/public/widget-event',
   path: '/api/public/widget-event',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/pricing': typeof PricingRoute
   '/widget-demo': typeof WidgetDemoRoute
+  '/admin-panel': typeof AuthenticatedAdminPanelRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/pricing': typeof PricingRoute
   '/widget-demo': typeof WidgetDemoRoute
+  '/admin-panel': typeof AuthenticatedAdminPanelRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/pricing': typeof PricingRoute
   '/widget-demo': typeof WidgetDemoRoute
+  '/_authenticated/admin-panel': typeof AuthenticatedAdminPanelRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/pricing'
     | '/widget-demo'
+    | '/admin-panel'
     | '/dashboard'
     | '/sites/$siteId'
     | '/api/public/widget-event'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/pricing'
     | '/widget-demo'
+    | '/admin-panel'
     | '/dashboard'
     | '/sites/$siteId'
     | '/api/public/widget-event'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/pricing'
     | '/widget-demo'
+    | '/_authenticated/admin-panel'
     | '/_authenticated/dashboard'
     | '/_authenticated/sites/$siteId'
     | '/api/public/widget-event'
@@ -205,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin-panel': {
+      id: '/_authenticated/admin-panel'
+      path: '/admin-panel'
+      fullPath: '/admin-panel'
+      preLoaderRoute: typeof AuthenticatedAdminPanelRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/api/public/widget-event': {
       id: '/api/public/widget-event'
       path: '/api/public/widget-event'
@@ -230,11 +249,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminPanelRoute: typeof AuthenticatedAdminPanelRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedSitesSiteIdRoute: typeof AuthenticatedSitesSiteIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminPanelRoute: AuthenticatedAdminPanelRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedSitesSiteIdRoute: AuthenticatedSitesSiteIdRoute,
 }
