@@ -15,6 +15,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
 import "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
+import { AdminToggle } from "@/components/admin-toggle";
 
 function NotFoundComponent() {
   return (
@@ -118,6 +119,7 @@ function RootComponent() {
       <ThemeProvider>
         <AuthProvider>
           <Outlet />
+          <AdminToggle />
           <Toaster richColors position="top-right" />
         </AuthProvider>
       </ThemeProvider>
