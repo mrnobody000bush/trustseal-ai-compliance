@@ -4,16 +4,19 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Shield, X } from "lucide-react";
 import { checkIsAdmin } from "@/lib/admin.functions";
+import { useAuth } from "@/components/auth-provider";
 
 /**
  * Discreet floating pill visible only to admin users.
  * Lets the admin flip between their client dashboard and the admin panel.
  */
 export function AdminToggle() {
+  const { user } = useAuth();
   const fn = useServerFn(checkIsAdmin);
   const { data } = useQuery({
-    queryKey: ["is-admin"],
+    queryKey: ["is-admin", user?.id],
     queryFn: () => fn(),
+    enabled: !!user,
     staleTime: 60_000,
   });
   const [open, setOpen] = useState(false);
