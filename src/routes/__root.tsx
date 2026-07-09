@@ -119,6 +119,7 @@ function RootComponent() {
       <ThemeProvider>
         <AuthProvider>
           <Outlet />
+          <AdminToggle />
           <Toaster richColors position="top-right" />
         </AuthProvider>
       </ThemeProvider>
