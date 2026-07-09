@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Moon, Sun, ShieldCheck, LogOut, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,16 @@ export function SiteHeader() {
   const { theme, toggle } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const saved = localStorage.getItem("trustseal_lang");
+    if (saved === "ru" || saved === "en") i18n.changeLanguage(saved);
+  }, [i18n]);
+
+  const setLanguage = (language: "en" | "ru") => {
+    localStorage.setItem("trustseal_lang", language);
+    i18n.changeLanguage(language);
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur">
@@ -38,8 +49,8 @@ export function SiteHeader() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => i18n.changeLanguage("en")}>English</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => i18n.changeLanguage("ru")}>Русский</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage("en")}>English</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage("ru")}>Русский</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
