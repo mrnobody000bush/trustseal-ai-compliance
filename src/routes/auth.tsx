@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
