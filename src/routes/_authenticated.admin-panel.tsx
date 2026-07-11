@@ -122,6 +122,31 @@ function AdminPanel() {
 
   const isAdminFn = useServerFn(checkIsAdmin);
   const statsFn = useServerFn(getAdminStats);
+  const impersonateFn = useServerFn(impersonateUser);
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const impersonate = useMutation({
+    mutationFn: (userId: string) => impersonateFn({ data: { userId } }),
+    onSuccess: async ({ email, token_hash }) => {
+      toast.loading(L.impersonating, { id: "impersonate" });
+      // Sign out of the admin session first so the target user's session cleanly replaces it.
+      await supabase.auth.signOut();
+      const { error } = await supabase.auth.verifyOtp({
+        type: "magiclink",
+        token_hash,
+      });
+      toast.dismiss("impersonate");
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      qc.clear();
+      toast.success(`Signed in as ${email}`);
+      navigate({ to: "/dashboard" });
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Impersonation failed"),
+  });
 
   const { data: adminCheck, isLoading: checking } = useQuery({
     queryKey: ["is-admin"],
