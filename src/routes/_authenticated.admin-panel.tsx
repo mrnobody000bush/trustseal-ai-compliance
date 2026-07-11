@@ -112,7 +112,10 @@ function AdminPanel() {
           scans: "Scans",
           avg: "Avg score",
           last: "Last",
+          actions: "Actions",
         },
+        loginAs: "Login as user",
+        impersonating: "Switching to client session…",
         empty: "No data yet.",
         forbidden: "Access denied.",
       };
