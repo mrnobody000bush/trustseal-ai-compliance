@@ -84,7 +84,10 @@ function AdminPanel() {
           scans: "Сканов",
           avg: "Ср. балл",
           last: "Последний",
+          actions: "Действия",
         },
+        loginAs: "Войти как клиент",
+        impersonating: "Переключаемся на клиента…",
         empty: "Пока нет данных.",
         forbidden: "Доступ запрещён.",
       }
