@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getSite, updateWidgetConfig, deleteSite } from "@/lib/sites.functions";
 import { runScan } from "@/lib/scans.functions";
+import { FixWithAIButton } from "@/components/fix-with-ai-button";
 
 export const Route = createFileRoute("/_authenticated/sites/$siteId")({
   component: SitePage,
@@ -102,6 +103,9 @@ function SitePage() {
             <Badge variant={latest.status === "completed" ? "default" : "secondary"}>{latest.status}</Badge>
           </div>
           {latest.summary && <p className="mt-4 text-sm text-muted-foreground">{latest.summary}</p>}
+          <div className="mt-6 border-t border-border pt-6">
+            <FixWithAIButton currentScore={latest.score ?? null} />
+          </div>
         </div>
       )}
 
