@@ -328,12 +328,13 @@ function AdminPanel() {
                     <th className="px-6 py-3 text-right font-medium">{L.cols.scans}</th>
                     <th className="px-6 py-3 text-right font-medium">{L.cols.avg}</th>
                     <th className="px-6 py-3 font-medium">{L.cols.last}</th>
+                    <th className="px-6 py-3 text-right font-medium">{L.cols.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.sites.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                      <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
                         {L.empty}
                       </td>
                     </tr>
@@ -365,6 +366,23 @@ function AdminPanel() {
                                 isRu ? "ru-RU" : "en-US",
                               )
                             : "—"}
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!s.user_id) return;
+                              if (confirm(`${L.loginAs}: ${s.owner_email ?? s.user_id}?`)) {
+                                impersonate.mutate(s.user_id);
+                              }
+                            }}
+                            disabled={impersonate.isPending || !s.user_id}
+                            title={L.loginAs}
+                            aria-label={L.loginAs}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-primary hover:text-primary disabled:opacity-40"
+                          >
+                            <LogIn className="h-4 w-4" />
+                          </button>
                         </td>
                       </tr>
                     ))
