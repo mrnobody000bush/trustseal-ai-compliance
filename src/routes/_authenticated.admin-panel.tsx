@@ -1,11 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Activity,
   DollarSign,
   Globe2,
+  LogIn,
   ShieldAlert,
   Users,
   Zap,
@@ -19,7 +21,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { getAdminStats, checkIsAdmin } from "@/lib/admin.functions";
+import { getAdminStats, checkIsAdmin, impersonateUser } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin-panel")({
   head: () => ({
@@ -81,7 +84,10 @@ function AdminPanel() {
           scans: "Сканов",
           avg: "Ср. балл",
           last: "Последний",
+          actions: "Действия",
         },
+        loginAs: "Войти как клиент",
+        impersonating: "Переключаемся на клиента…",
         empty: "Пока нет данных.",
         forbidden: "Доступ запрещён.",
       }
@@ -106,13 +112,41 @@ function AdminPanel() {
           scans: "Scans",
           avg: "Avg score",
           last: "Last",
+          actions: "Actions",
         },
+        loginAs: "Login as user",
+        impersonating: "Switching to client session…",
         empty: "No data yet.",
         forbidden: "Access denied.",
       };
 
   const isAdminFn = useServerFn(checkIsAdmin);
   const statsFn = useServerFn(getAdminStats);
+  const impersonateFn = useServerFn(impersonateUser);
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const impersonate = useMutation({
+    mutationFn: (userId: string) => impersonateFn({ data: { userId } }),
+    onSuccess: async ({ email, token_hash }) => {
+      toast.loading(L.impersonating, { id: "impersonate" });
+      // Sign out of the admin session first so the target user's session cleanly replaces it.
+      await supabase.auth.signOut();
+      const { error } = await supabase.auth.verifyOtp({
+        type: "magiclink",
+        token_hash,
+      });
+      toast.dismiss("impersonate");
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      qc.clear();
+      toast.success(`Signed in as ${email}`);
+      navigate({ to: "/dashboard" });
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Impersonation failed"),
+  });
 
   const { data: adminCheck, isLoading: checking } = useQuery({
     queryKey: ["is-admin"],
@@ -294,12 +328,13 @@ function AdminPanel() {
                     <th className="px-6 py-3 text-right font-medium">{L.cols.scans}</th>
                     <th className="px-6 py-3 text-right font-medium">{L.cols.avg}</th>
                     <th className="px-6 py-3 font-medium">{L.cols.last}</th>
+                    <th className="px-6 py-3 text-right font-medium">{L.cols.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.sites.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                      <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
                         {L.empty}
                       </td>
                     </tr>
@@ -331,6 +366,23 @@ function AdminPanel() {
                                 isRu ? "ru-RU" : "en-US",
                               )
                             : "—"}
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!s.user_id) return;
+                              if (confirm(`${L.loginAs}: ${s.owner_email ?? s.user_id}?`)) {
+                                impersonate.mutate(s.user_id);
+                              }
+                            }}
+                            disabled={impersonate.isPending || !s.user_id}
+                            title={L.loginAs}
+                            aria-label={L.loginAs}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-primary hover:text-primary disabled:opacity-40"
+                          >
+                            <LogIn className="h-4 w-4" />
+                          </button>
                         </td>
                       </tr>
                     ))

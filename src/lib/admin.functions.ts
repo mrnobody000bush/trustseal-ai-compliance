@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function assertAdmin(supabaseAdmin: any, userId: string) {
@@ -24,6 +25,41 @@ export const checkIsAdmin = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     return { isAdmin: !!data };
+  });
+
+const ImpersonateSchema = z.object({ userId: z.string().uuid() });
+
+/**
+ * Generates a one-time magic link for the target user and returns the
+ * `token_hash` so the client can `verifyOtp` and swap the current session
+ * into the target user's account. Admin-only.
+ */
+export const impersonateUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => ImpersonateSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await assertAdmin(supabaseAdmin, context.userId);
+
+    const { data: userRes, error: userErr } =
+      await supabaseAdmin.auth.admin.getUserById(data.userId);
+    if (userErr || !userRes?.user?.email) {
+      throw new Error(userErr?.message ?? "User not found or has no email");
+    }
+
+    const { data: linkRes, error: linkErr } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "magiclink",
+        email: userRes.user.email,
+      });
+    if (linkErr || !linkRes?.properties?.hashed_token) {
+      throw new Error(linkErr?.message ?? "Failed to generate impersonation link");
+    }
+
+    return {
+      email: userRes.user.email,
+      token_hash: linkRes.properties.hashed_token,
+    };
   });
 
 export const getAdminStats = createServerFn({ method: "GET" })
