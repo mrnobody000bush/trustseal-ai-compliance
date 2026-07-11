@@ -1,11 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Activity,
   DollarSign,
   Globe2,
+  LogIn,
   ShieldAlert,
   Users,
   Zap,
@@ -19,7 +21,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { getAdminStats, checkIsAdmin } from "@/lib/admin.functions";
+import { getAdminStats, checkIsAdmin, impersonateUser } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin-panel")({
   head: () => ({
