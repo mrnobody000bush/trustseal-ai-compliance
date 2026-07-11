@@ -1,28 +1,31 @@
 import { useState } from "react";
-import { Sparkles, Lock, Loader2 } from "lucide-react";
+import { Sparkles, Lock, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { checkIsAdmin } from "@/lib/admin.functions";
+import { applyAiFix } from "@/lib/scans.functions";
 import { useAuth } from "@/components/auth-provider";
 import { useAdminMode } from "@/lib/admin-mode";
 
 interface Props {
+  siteId: string;
   currentScore: number | null;
   onFixed?: (newScore: number) => void;
 }
 
 /**
  * "Fix with TrustSeal AI" — respects admin mode + plan tier.
- * - Admin Mode ON → always works, animates score to 100.
+ * - Admin Mode ON → always works, animates score to 100 AND persists the fix.
  * - Admin Mode OFF + Growth/Scale plan → works.
  * - Admin Mode OFF + Free plan → upgrade modal.
  */
-export function FixWithAIButton({ currentScore, onFixed }: Props) {
+export function FixWithAIButton({ siteId, currentScore, onFixed }: Props) {
   const { user } = useAuth();
   const checkFn = useServerFn(checkIsAdmin);
   const { data: adminData } = useQuery({
@@ -32,6 +35,19 @@ export function FixWithAIButton({ currentScore, onFixed }: Props) {
     staleTime: 60_000,
   });
   const { effectiveAdminMode, canFix, plan } = useAdminMode(!!adminData?.isAdmin);
+
+  const qc = useQueryClient();
+  const applyFix = useServerFn(applyAiFix);
+  const fixMutation = useMutation({
+    mutationFn: () => applyFix({ data: { siteId } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["site", siteId] });
+      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+      qc.invalidateQueries({ queryKey: ["sites"] });
+      onFixed?.(100);
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Failed to apply AI fix"),
+  });
 
   const [fixing, setFixing] = useState(false);
   const [animScore, setAnimScore] = useState<number | null>(null);
@@ -54,7 +70,7 @@ export function FixWithAIButton({ currentScore, onFixed }: Props) {
       else {
         setFixing(false);
         setDone(true);
-        onFixed?.(100);
+        fixMutation.mutate();
       }
     };
     requestAnimationFrame(step);
@@ -70,17 +86,17 @@ export function FixWithAIButton({ currentScore, onFixed }: Props) {
       <div className="flex flex-col items-start gap-2">
         <Button
           onClick={handleClick}
-          disabled={fixing}
+          disabled={fixing || fixMutation.isPending}
           className="bg-gradient-to-r from-primary to-purple-500 text-primary-foreground shadow-md hover:opacity-90"
         >
-          {fixing ? (
+          {fixing || fixMutation.isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : canFix ? (
             <Sparkles className="mr-2 h-4 w-4" />
           ) : (
             <Lock className="mr-2 h-4 w-4" />
           )}
-          {fixing ? "AI fixing…" : "Fix with TrustSeal AI"}
+          {fixing ? "AI fixing…" : fixMutation.isPending ? "Applying fix…" : "Fix with TrustSeal AI"}
         </Button>
         {effectiveAdminMode && (
           <span className="text-[10px] uppercase tracking-wide text-primary/80">
@@ -105,7 +121,11 @@ export function FixWithAIButton({ currentScore, onFixed }: Props) {
                 {animScore}<span className="text-2xl text-muted-foreground">/100</span>
               </div>
             </div>
-            <Sparkles className={`h-10 w-10 text-primary ${fixing ? "animate-pulse" : ""}`} />
+            {done ? (
+              <ShieldCheck className="h-10 w-10 text-primary" />
+            ) : (
+              <Sparkles className="h-10 w-10 text-primary animate-pulse" />
+            )}
           </div>
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
             <div
