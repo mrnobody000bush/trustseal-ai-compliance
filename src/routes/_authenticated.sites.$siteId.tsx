@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSite, updateWidgetConfig, deleteSite } from "@/lib/sites.functions";
 import { runScan } from "@/lib/scans.functions";
 import { FixWithAIButton } from "@/components/fix-with-ai-button";
+import { CompliancePatchReport } from "@/components/compliance-patch-report";
 
 export const Route = createFileRoute("/_authenticated/sites/$siteId")({
   component: SitePage,
@@ -106,17 +107,7 @@ function SitePage() {
           </div>
           {latest.summary && <p className="mt-4 text-sm text-muted-foreground">{latest.summary}</p>}
           {latest.score === 100 && (
-            <div className="mt-6 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-purple-500/10 p-5">
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
-                <div>
-                  <div className="font-semibold text-primary">Site successfully protected</div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    All vulnerabilities have been resolved by TrustSeal AI algorithms. Your storefront is now fully compliant.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <CompliancePatchReport siteName={site.name} siteDomain={site.domain} />
           )}
           <div className="mt-6 border-t border-border pt-6">
             <FixWithAIButton siteId={site.id} currentScore={latest.score ?? null} />
