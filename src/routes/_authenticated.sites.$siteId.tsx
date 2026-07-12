@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSite, updateWidgetConfig, deleteSite } from "@/lib/sites.functions";
 import { runScan } from "@/lib/scans.functions";
 import { FixWithAIButton } from "@/components/fix-with-ai-button";
+import { CompliancePatchReport } from "@/components/compliance-patch-report";
 
 export const Route = createFileRoute("/_authenticated/sites/$siteId")({
   component: SitePage,
