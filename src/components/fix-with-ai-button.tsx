@@ -133,26 +133,12 @@ export function FixWithAIButton({ siteId, currentScore, onFixed }: Props) {
         </div>
       )}
 
-      <Dialog open={showUpgrade} onOpenChange={setShowUpgrade}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5 text-primary" />
-              Upgrade to unlock AI fixes
-            </DialogTitle>
-            <DialogDescription>
-              AI-powered auto-remediation is available on the <b>Growth</b> and <b>Scale</b> plans.
-              Upgrade to let TrustSeal AI resolve compliance findings automatically.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUpgrade(false)}>Not now</Button>
-            <Button asChild>
-              <Link to="/pricing" onClick={() => setShowUpgrade(false)}>View plans</Link>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <UpgradeModal
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        title="Upgrade to unlock AI fixes"
+        description="AI-powered auto-remediation is available on the Growth and Scale plans. Upgrade to let TrustSeal AI resolve compliance findings automatically."
+      />
     </>
   );
 }
