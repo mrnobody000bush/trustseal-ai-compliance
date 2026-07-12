@@ -2,8 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { ArrowLeft, Play, Trash2, Copy, Check, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Play, Trash2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +15,11 @@ import { getSite, updateWidgetConfig, deleteSite } from "@/lib/sites.functions";
 import { runScan } from "@/lib/scans.functions";
 import { FixWithAIButton } from "@/components/fix-with-ai-button";
 import { CompliancePatchReport } from "@/components/compliance-patch-report";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { useAdminMode } from "@/lib/admin-mode";
+import { useFreeScanCount } from "@/lib/plan-limits";
+import { checkIsAdmin } from "@/lib/admin.functions";
+import { useAuth } from "@/components/auth-provider";
 
 export const Route = createFileRoute("/_authenticated/sites/$siteId")({
   component: SitePage,
@@ -29,7 +33,6 @@ const SEVERITY_COLOR: Record<string, string> = {
 };
 
 function SitePage() {
-  const { t } = useTranslation();
   const { siteId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -37,6 +40,18 @@ function SitePage() {
   const runScanFn = useServerFn(runScan);
   const updateFn = useServerFn(updateWidgetConfig);
   const deleteFn = useServerFn(deleteSite);
+
+  const { user } = useAuth();
+  const checkFn = useServerFn(checkIsAdmin);
+  const { data: adminData } = useQuery({
+    queryKey: ["is-admin", user?.id],
+    queryFn: () => checkFn(),
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+  const { effectiveAdminMode, plan } = useAdminMode(!!adminData?.isAdmin);
+  const { count, limit, increment, reached } = useFreeScanCount();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["site", siteId],
@@ -57,6 +72,17 @@ function SitePage() {
     onSuccess: () => { toast.success("Deleted"); navigate({ to: "/dashboard" }); },
   });
 
+  const isFreePlan = !effectiveAdminMode && plan === "free";
+
+  const handleScan = () => {
+    if (isFreePlan && reached) {
+      setUpgradeOpen(true);
+      return;
+    }
+    if (isFreePlan) increment();
+    scan.mutate();
+  };
+
   const [copied, setCopied] = useState(false);
   if (isLoading || !data) return <main className="mx-auto max-w-5xl px-6 py-10 text-muted-foreground">Loading…</main>;
 
@@ -70,7 +96,7 @@ function SitePage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <Link to="/dashboard" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> {t("site.back")}
+        <ArrowLeft className="h-4 w-4" /> Back to dashboard
       </Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
@@ -78,19 +104,26 @@ function SitePage() {
           <h1 className="text-2xl font-bold">{site.name}</h1>
           <div className="text-sm text-muted-foreground">{site.domain}</div>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => scan.mutate()} disabled={scan.isPending}>
-            <Play className="mr-2 h-4 w-4" />
-            {scan.isPending ? t("site.scanning") : t("site.scan")}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => { if (confirm(t("site.confirmDelete"))) del.mutate(); }}
-            aria-label={t("site.delete")}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex gap-2">
+            <Button onClick={handleScan} disabled={scan.isPending}>
+              <Play className="mr-2 h-4 w-4" />
+              {scan.isPending ? "Scanning…" : "Run new scan"}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => { if (confirm("Delete this store and all its scans?")) del.mutate(); }}
+              aria-label="Delete store"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          {isFreePlan && (
+            <span className="text-[11px] text-muted-foreground">
+              Free plan · {Math.min(count, limit)}/{limit} scans used
+            </span>
+          )}
         </div>
       </div>
 
@@ -98,7 +131,7 @@ function SitePage() {
         <div className="mt-6 rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs uppercase text-muted-foreground">{t("dashboard.score")}</div>
+              <div className="text-xs uppercase text-muted-foreground">Score</div>
               <div className="text-4xl font-bold text-primary transition-all">{latest.score ?? "—"}</div>
             </div>
             <Badge variant={latest.score === 100 ? "default" : latest.status === "completed" ? "default" : "secondary"}>
@@ -118,8 +151,8 @@ function SitePage() {
       {/* Embed & config */}
       <section className="mt-8 grid gap-6 md:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="font-semibold">{t("site.embed")}</h2>
-          <p className="mt-1 text-xs text-muted-foreground">{t("site.embedHelp")}</p>
+          <h2 className="font-semibold">Embed code</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Paste this before &lt;/body&gt; on your storefront.</p>
           <div className="mt-4 rounded-lg border border-border bg-surface p-3 font-mono text-xs break-all">
             {embedCode}
           </div>
@@ -144,9 +177,9 @@ function SitePage() {
 
       {/* Reports */}
       <section className="mt-8">
-        <h2 className="font-semibold">{t("site.reports")}</h2>
+        <h2 className="font-semibold">Reports</h2>
         {scans.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">{t("site.noReports")}</p>
+          <p className="mt-2 text-sm text-muted-foreground">No scans yet. Run your first scan to generate a report.</p>
         ) : (
           <div className="mt-4 space-y-3">
             {scans.map((s) => {
@@ -182,12 +215,18 @@ function SitePage() {
           </div>
         )}
       </section>
+
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        title="Free plan limit reached"
+        description={`You've used all ${limit} free scans. Upgrade to Growth or Scale to keep scanning and unlock AI auto-fix.`}
+      />
     </main>
   );
 }
 
 function WidgetForm({ initial, onSave }: { initial: Record<string, unknown>; onSave: (c: Record<string, unknown>) => void }) {
-  const { t } = useTranslation();
   const [theme, setTheme] = useState((initial.theme as string) ?? "light");
   const [accent, setAccent] = useState((initial.accent as string) ?? "#4F46E5");
   const [position, setPosition] = useState((initial.position as string) ?? "bottom-right");
@@ -197,9 +236,9 @@ function WidgetForm({ initial, onSave }: { initial: Record<string, unknown>; onS
       className="rounded-2xl border border-border bg-card p-6 space-y-4"
       onSubmit={(e) => { e.preventDefault(); onSave({ theme, accent, position, showBadge: true }); }}
     >
-      <h2 className="font-semibold">{t("site.widget")}</h2>
+      <h2 className="font-semibold">Widget configuration</h2>
       <div className="space-y-1.5">
-        <Label>{t("site.theme")}</Label>
+        <Label>Theme</Label>
         <Select value={theme} onValueChange={setTheme}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -209,11 +248,11 @@ function WidgetForm({ initial, onSave }: { initial: Record<string, unknown>; onS
         </Select>
       </div>
       <div className="space-y-1.5">
-        <Label>{t("site.accent")}</Label>
+        <Label>Accent color</Label>
         <Input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} className="h-10 w-24 p-1" />
       </div>
       <div className="space-y-1.5">
-        <Label>{t("site.position")}</Label>
+        <Label>Position</Label>
         <Select value={position} onValueChange={setPosition}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -223,7 +262,7 @@ function WidgetForm({ initial, onSave }: { initial: Record<string, unknown>; onS
           </SelectContent>
         </Select>
       </div>
-      <Button type="submit" className="w-full">{t("site.save")}</Button>
+      <Button type="submit" className="w-full">Save widget</Button>
     </form>
   );
 }

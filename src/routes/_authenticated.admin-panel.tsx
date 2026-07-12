@@ -275,21 +275,29 @@ function AdminPanel() {
                       <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis
                     dataKey="date"
                     tickFormatter={(v) => v.slice(5)}
-                    stroke="hsl(var(--muted-foreground))"
+                    stroke="var(--muted-foreground)"
+                    tick={{ fill: "var(--muted-foreground)" }}
                     fontSize={11}
                   />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                  <YAxis
+                    stroke="var(--muted-foreground)"
+                    tick={{ fill: "var(--muted-foreground)" }}
+                    fontSize={11}
+                  />
                   <Tooltip
                     contentStyle={{
-                      background: "hsl(var(--background))",
-                      border: "1px solid hsl(var(--border))",
+                      background: "var(--background)",
+                      border: "1px solid var(--border)",
                       borderRadius: 8,
                       fontSize: 12,
+                      color: "var(--foreground)",
                     }}
+                    labelStyle={{ color: "var(--foreground)" }}
+                    itemStyle={{ color: "var(--foreground)" }}
                   />
                   <Area
                     type="monotone"

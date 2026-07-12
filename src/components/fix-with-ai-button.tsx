@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { Sparkles, Lock, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
-import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -12,6 +8,7 @@ import { checkIsAdmin } from "@/lib/admin.functions";
 import { applyAiFix } from "@/lib/scans.functions";
 import { useAuth } from "@/components/auth-provider";
 import { useAdminMode } from "@/lib/admin-mode";
+import { UpgradeModal } from "@/components/upgrade-modal";
 
 interface Props {
   siteId: string;
@@ -136,26 +133,12 @@ export function FixWithAIButton({ siteId, currentScore, onFixed }: Props) {
         </div>
       )}
 
-      <Dialog open={showUpgrade} onOpenChange={setShowUpgrade}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5 text-primary" />
-              Upgrade to unlock AI fixes
-            </DialogTitle>
-            <DialogDescription>
-              AI-powered auto-remediation is available on the <b>Growth</b> and <b>Scale</b> plans.
-              Upgrade to let TrustSeal AI resolve compliance findings automatically.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUpgrade(false)}>Not now</Button>
-            <Button asChild>
-              <Link to="/pricing" onClick={() => setShowUpgrade(false)}>View plans</Link>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <UpgradeModal
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        title="Upgrade to unlock AI fixes"
+        description="AI-powered auto-remediation is available on the Growth and Scale plans. Upgrade to let TrustSeal AI resolve compliance findings automatically."
+      />
     </>
   );
 }
