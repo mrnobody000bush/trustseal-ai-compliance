@@ -92,7 +92,7 @@ function DashboardPage() {
                   key={s.id}
                   to="/sites/$siteId"
                   params={{ siteId: s.id }}
-                  className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40"
+                  className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40 shadow-sm hover:shadow-lg dark:border-white/10 dark:bg-card/60 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_8px_30px_-12px_rgba(99,102,241,0.35)] dark:hover:border-primary/60 dark:hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_12px_40px_-10px_rgba(99,102,241,0.5)]"
                 >
                   <div className="flex items-start justify-between">
                     <div>

@@ -32,7 +32,9 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/dashboard" });
+    if (loading || !user) return;
+    const chosen = typeof window !== "undefined" && window.localStorage.getItem("ts-plan-chosen") === "1";
+    navigate({ to: chosen ? "/dashboard" : "/choose-plan" });
   }, [user, loading, navigate]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -40,16 +42,18 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        // Force plan selection for new accounts.
+        if (typeof window !== "undefined") window.localStorage.removeItem("ts-plan-chosen");
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}/choose-plan`,
             data: { full_name: fullName },
           },
         });
         if (error) throw error;
-        toast.success("Account created");
+        toast.success("Account created — pick your plan");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
