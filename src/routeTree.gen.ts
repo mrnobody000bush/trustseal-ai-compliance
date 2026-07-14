@@ -16,6 +16,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedChoosePlanRouteImport } from './routes/_authenticated.choose-plan'
 import { Route as AuthenticatedAdminPanelRouteImport } from './routes/_authenticated.admin-panel'
 import { Route as ApiPublicWidgetEventRouteImport } from './routes/api/public/widget-event'
 import { Route as AuthenticatedSitesSiteIdRouteImport } from './routes/_authenticated.sites.$siteId'
@@ -55,6 +56,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedChoosePlanRoute = AuthenticatedChoosePlanRouteImport.update({
+  id: '/choose-plan',
+  path: '/choose-plan',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminPanelRoute = AuthenticatedAdminPanelRouteImport.update({
   id: '/admin-panel',
   path: '/admin-panel',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/widget-demo': typeof WidgetDemoRoute
   '/admin-panel': typeof AuthenticatedAdminPanelRoute
+  '/choose-plan': typeof AuthenticatedChoosePlanRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/widget-demo': typeof WidgetDemoRoute
   '/admin-panel': typeof AuthenticatedAdminPanelRoute
+  '/choose-plan': typeof AuthenticatedChoosePlanRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/widget-demo': typeof WidgetDemoRoute
   '/_authenticated/admin-panel': typeof AuthenticatedAdminPanelRoute
+  '/_authenticated/choose-plan': typeof AuthenticatedChoosePlanRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/widget-demo'
     | '/admin-panel'
+    | '/choose-plan'
     | '/dashboard'
     | '/sites/$siteId'
     | '/api/public/widget-event'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/widget-demo'
     | '/admin-panel'
+    | '/choose-plan'
     | '/dashboard'
     | '/sites/$siteId'
     | '/api/public/widget-event'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/widget-demo'
     | '/_authenticated/admin-panel'
+    | '/_authenticated/choose-plan'
     | '/_authenticated/dashboard'
     | '/_authenticated/sites/$siteId'
     | '/api/public/widget-event'
@@ -217,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/choose-plan': {
+      id: '/_authenticated/choose-plan'
+      path: '/choose-plan'
+      fullPath: '/choose-plan'
+      preLoaderRoute: typeof AuthenticatedChoosePlanRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin-panel': {
       id: '/_authenticated/admin-panel'
       path: '/admin-panel'
@@ -250,12 +269,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminPanelRoute: typeof AuthenticatedAdminPanelRoute
+  AuthenticatedChoosePlanRoute: typeof AuthenticatedChoosePlanRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedSitesSiteIdRoute: typeof AuthenticatedSitesSiteIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminPanelRoute: AuthenticatedAdminPanelRoute,
+  AuthenticatedChoosePlanRoute: AuthenticatedChoosePlanRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedSitesSiteIdRoute: AuthenticatedSitesSiteIdRoute,
 }
