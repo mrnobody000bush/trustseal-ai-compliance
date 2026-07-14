@@ -11,9 +11,9 @@ export function SiteFooter() {
           <span className="text-muted-foreground">© {new Date().getFullYear()}</span>
         </div>
         <div className="flex gap-6">
-          <Link to="/pricing" className="hover:text-foreground">Тарифы</Link>
-          <Link to="/about" className="hover:text-foreground">О нас</Link>
-          <Link to="/widget-demo" className="hover:text-foreground">Демо</Link>
+          <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
+          <Link to="/about" className="hover:text-foreground">About</Link>
+          <Link to="/widget-demo" className="hover:text-foreground">Live demo</Link>
         </div>
       </div>
     </footer>
