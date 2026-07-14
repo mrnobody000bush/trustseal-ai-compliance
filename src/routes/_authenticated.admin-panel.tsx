@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
+
 import { toast } from "sonner";
 import {
   Activity,
@@ -60,65 +60,36 @@ function StatCard({
 }
 
 function AdminPanel() {
-  const { i18n } = useTranslation();
-  const isRu = i18n.language?.startsWith("ru");
-  const L = isRu
-    ? {
-        title: "Панель супер-админа",
-        subtitle: "Внутренние метрики TrustSeal — только для команды.",
-        mrr: "MRR (прогноз)",
-        mrrHint: "$49 × активных клиентов",
-        arr: "ARR (прогноз)",
-        clients: "Активные клиенты",
-        clientsHint: "Всего аккаунтов",
-        sites: "Магазины",
-        sitesHint: "активных из всего",
-        scans: "AI-сканирований",
-        events: "События виджета",
-        load: "Нагрузка на ИИ-серверы (14 дней)",
-        allSites: "Все сканируемые сайты",
-        cols: {
-          name: "Магазин",
-          domain: "Домен",
-          owner: "Клиент",
-          scans: "Сканов",
-          avg: "Ср. балл",
-          last: "Последний",
-          actions: "Действия",
-        },
-        loginAs: "Войти как клиент",
-        impersonating: "Переключаемся на клиента…",
-        empty: "Пока нет данных.",
-        forbidden: "Доступ запрещён.",
-      }
-    : {
-        title: "Super-admin panel",
-        subtitle: "Internal TrustSeal metrics — team only.",
-        mrr: "MRR (projected)",
-        mrrHint: "$49 × active clients",
-        arr: "ARR (projected)",
-        clients: "Active clients",
-        clientsHint: "Total accounts",
-        sites: "Stores",
-        sitesHint: "active of total",
-        scans: "AI scans",
-        events: "Widget events",
-        load: "AI server load (14 days)",
-        allSites: "All scanned sites",
-        cols: {
-          name: "Store",
-          domain: "Domain",
-          owner: "Client",
-          scans: "Scans",
-          avg: "Avg score",
-          last: "Last",
-          actions: "Actions",
-        },
-        loginAs: "Login as user",
-        impersonating: "Switching to client session…",
-        empty: "No data yet.",
-        forbidden: "Access denied.",
-      };
+  const isRu = false;
+  const L = {
+    title: "Super-admin panel",
+    subtitle: "Internal TrustSeal metrics — team only.",
+    mrr: "MRR (projected)",
+    mrrHint: "$49 × active clients",
+    arr: "ARR (projected)",
+    clients: "Active clients",
+    clientsHint: "Total accounts",
+    sites: "Stores",
+    sitesHint: "active of total",
+    scans: "AI scans",
+    events: "Widget events",
+    load: "AI server load (14 days)",
+    allSites: "All scanned sites",
+    cols: {
+      name: "Store",
+      domain: "Domain",
+      owner: "Client",
+      scans: "Scans",
+      avg: "Avg score",
+      last: "Last",
+      actions: "Actions",
+    },
+    loginAs: "Login as user",
+    impersonating: "Switching to client session…",
+    empty: "No data yet.",
+    forbidden: "Access denied.",
+  };
+
 
   const isAdminFn = useServerFn(checkIsAdmin);
   const statsFn = useServerFn(getAdminStats);
@@ -172,9 +143,7 @@ function AdminPanel() {
         <ShieldAlert className="mx-auto h-10 w-10 text-destructive" />
         <h1 className="mt-4 text-2xl font-semibold">{L.forbidden}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {isRu
-            ? "Эта страница доступна только супер-администраторам."
-            : "This page is only available to super-admins."}
+          This page is only available to super-admins.
         </p>
         <Link
           to="/dashboard"
@@ -207,7 +176,7 @@ function AdminPanel() {
           to="/dashboard"
           className="rounded-full border border-border px-4 py-2 text-xs hover:border-primary"
         >
-          {isRu ? "← В личный кабинет" : "← Client view"}
+          ← Client view
         </Link>
       </div>
 

@@ -5,10 +5,10 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "О нас — TrustSeal" },
-      { name: "description", content: "Почему существует TrustSeal — комплаенс EU AI Act и доверие покупателей в одном продукте." },
-      { property: "og:title", content: "О TrustSeal" },
-      { property: "og:description", content: "Комплаенс и конверсия в одном продукте." },
+      { title: "About — TrustSeal" },
+      { name: "description", content: "Why TrustSeal exists — EU AI Act compliance and buyer trust in one product." },
+      { property: "og:title", content: "About TrustSeal" },
+      { property: "og:description", content: "Compliance and conversion in one product." },
     ],
   }),
   component: AboutPage,
@@ -19,16 +19,16 @@ function AboutPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-20">
-        <h1 className="text-4xl font-bold">Почему TrustSeal</h1>
+        <h1 className="text-4xl font-bold">Why TrustSeal</h1>
         <div className="mt-8 space-y-6 text-lg text-muted-foreground leading-relaxed">
           <p>
-            В августе 2026 года вступают в силу ключевые обязательства EU AI Act. Любой онлайн-магазин, использующий ИИ для персонализации цен, генерации изображений товаров, работы рекомендательных систем или ответов чат-бота, обязан маркировать эти системы, раскрывать происхождение обучающих данных и вести документацию по рискам.
+            In August 2026 the core obligations of the EU AI Act come into force. Any online store that uses AI for price personalization, product image generation, recommender systems or chatbot responses must label those systems, disclose the origin of their training data and maintain risk documentation.
           </p>
           <p>
-            Одновременно покупатели скептичнее, чем когда-либо. Отзывы накручиваются, фотографии генерируются ИИ, магазины теряют 60–70% посетителей на чекауте, потому что доверие так и не сформировалось.
+            At the same time buyers are more skeptical than ever. Reviews are gamed, photos are AI-generated, and stores lose 60–70% of visitors at checkout because trust was never established.
           </p>
           <p>
-            TrustSeal решает обе задачи одним продуктом: ИИ-сканер комплаенса для оператора и клиентский трастовый виджет, который превращает прозрачность в конверсию.
+            TrustSeal solves both problems in one product: an AI compliance scanner for the operator, and a customer-facing trust widget that turns transparency into conversion.
           </p>
         </div>
       </main>

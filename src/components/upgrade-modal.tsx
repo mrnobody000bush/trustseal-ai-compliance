@@ -16,7 +16,7 @@ interface Props {
 
 /**
  * Upgrade modal — shown when a Free-plan user hits a limit.
- * Clicking "Подключить тариф" switches the simulated plan to growth/scale,
+ * Clicking "Upgrade now" switches the simulated plan to growth/scale,
  * resets the free-scan counter, and closes the modal.
  */
 export function UpgradeModal({ open, onOpenChange, title, description }: Props) {
@@ -27,7 +27,7 @@ export function UpgradeModal({ open, onOpenChange, title, description }: Props) 
     setPlan(plan);
     reset();
     onOpenChange(false);
-    toast.success(`Тариф активирован: ${label}. Безлимитные сканирования и AI-исправления доступны.`);
+    toast.success(`${label} plan activated. Unlimited scans and AI fixes are now available.`);
   };
 
   return (
@@ -35,10 +35,10 @@ export function UpgradeModal({ open, onOpenChange, title, description }: Props) 
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            {title ?? "Вы исчерпали дневной лимит бесплатного тарифа"}
+            {title ?? "Your Free limit is reached"}
           </DialogTitle>
           <DialogDescription>
-            {description ?? "Для получения безлимитных сканирований и авто-исправления ошибок обновите тарифный план."}
+            {description ?? "Upgrade your plan to unlock unlimited scans and AI auto-fix."}
           </DialogDescription>
         </DialogHeader>
 
@@ -49,10 +49,10 @@ export function UpgradeModal({ open, onOpenChange, title, description }: Props) 
             price="$99"
             highlight
             features={[
-              "До 5 магазинов",
-              "Полные отчёты EU AI Act",
-              "Безлимитный «Fix with TrustSeal AI»",
-              "Поддержка по e-mail",
+              "Up to 5 stores",
+              "Full EU AI Act reports",
+              "Unlimited “Fix with TrustSeal AI”",
+              "Email support",
             ]}
             onUpgrade={() => upgrade("growth", "Growth")}
           />
@@ -61,17 +61,17 @@ export function UpgradeModal({ open, onOpenChange, title, description }: Props) 
             name="Scale"
             price="$299"
             features={[
-              "Безлимит магазинов и сканирований",
-              "PDF-сертификаты под брендом",
-              "Приоритетная поддержка",
-              "White-label виджет",
+              "Unlimited stores and scans",
+              "Branded PDF certificates",
+              "Priority support",
+              "White-label widget",
             ]}
             onUpgrade={() => upgrade("scale", "Scale")}
           />
         </div>
 
         <div className="mt-4 flex items-center justify-end gap-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Не сейчас</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Not now</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -93,7 +93,7 @@ function PlanCard({
       </div>
       <div className="mt-2 flex items-baseline gap-1">
         <span className="text-3xl font-bold">{price}</span>
-        <span className="text-sm text-muted-foreground">/мес</span>
+        <span className="text-sm text-muted-foreground">/mo</span>
       </div>
       <ul className="mt-4 space-y-2 text-sm">
         {features.map((f) => (
@@ -108,7 +108,7 @@ function PlanCard({
         variant={highlight ? "default" : "outline"}
         onClick={onUpgrade}
       >
-        Подключить тариф
+        Upgrade now
       </Button>
     </div>
   );
