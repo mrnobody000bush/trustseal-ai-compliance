@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, ExternalLink, ShieldCheck } from "lucide-react";
+import { Plus, ExternalLink, ShieldCheck, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,6 +100,17 @@ function DashboardPage() {
                       <div className="text-xs text-muted-foreground">{s.domain}</div>
                     </div>
                     <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="mt-3">
+                    {s.verification_status === "verified" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary">
+                        <ShieldCheck className="h-3 w-3" /> Active Compliance
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
+                        <ShieldAlert className="h-3 w-3" /> Pending Verification
+                      </span>
+                    )}
                   </div>
                   <div className="mt-4 flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Score</span>
