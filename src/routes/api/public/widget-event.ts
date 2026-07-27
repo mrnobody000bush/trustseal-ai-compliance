@@ -27,6 +27,7 @@ export const Route = createFileRoute("/api/public/widget-event")({
             .select("id")
             .eq("id", body.site_id)
             .eq("is_active", true)
+          .eq("verification_status", "verified")
             .maybeSingle();
           if (!site) {
             return new Response(JSON.stringify({ ok: false }), {

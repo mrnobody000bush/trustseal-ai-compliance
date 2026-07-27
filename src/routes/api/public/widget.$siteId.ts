@@ -12,6 +12,7 @@ export const Route = createFileRoute("/api/public/widget/$siteId")({
           .select("id, name, domain, widget_config, is_active")
           .eq("id", params.siteId)
           .eq("is_active", true)
+          .eq("verification_status", "verified")
           .maybeSingle();
 
         if (error || !site) {
