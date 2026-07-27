@@ -23,12 +23,20 @@ export const Route = createFileRoute("/api/public/widget-event")({
       POST: async ({ request }) => {
         try {
           const body = Body.parse(await request.json());
-          const supabase = createClient<Database>(
-            process.env.SUPABASE_URL!,
-            process.env.SUPABASE_PUBLISHABLE_KEY!,
-            { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
-          );
-          await supabase.from("widget_events").insert({
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: site } = await supabaseAdmin
+            .from("sites")
+            .select("id")
+            .eq("id", body.site_id)
+            .eq("is_active", true)
+            .maybeSingle();
+          if (!site) {
+            return new Response(JSON.stringify({ ok: false }), {
+              status: 404,
+              headers: cors({ "content-type": "application/json" }),
+            });
+          }
+          await supabaseAdmin.from("widget_events").insert({
             site_id: body.site_id,
             event_type: body.event_type,
             meta: body.meta ?? {},
