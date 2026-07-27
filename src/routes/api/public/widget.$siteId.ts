@@ -1,16 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/api/public/widget/$siteId")({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        const supabase = createClient<Database>(
-          process.env.SUPABASE_URL!,
-          process.env.SUPABASE_PUBLISHABLE_KEY!,
-          { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
-        );
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const supabase = supabaseAdmin;
 
         const { data: site, error } = await supabase
           .from("sites")
