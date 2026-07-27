@@ -18,7 +18,7 @@ export const listSites = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("sites")
-      .select("id, domain, name, description, widget_config, is_active, created_at, updated_at, compliance_scans(score, status, created_at)")
+      .select("id, domain, name, description, widget_config, is_active, verification_status, verification_method, verified_at, plugin_last_seen_at, created_at, updated_at, compliance_scans(score, status, created_at)")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -74,6 +74,23 @@ export const deleteSite = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => IdSchema.parse(i))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("sites").delete().eq("id", data.siteId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const revokeVerification = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => IdSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("sites")
+      .update({
+        verification_status: "pending",
+        verification_method: null,
+        verified_at: null,
+        plugin_last_seen_at: null,
+      })
+      .eq("id", data.siteId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

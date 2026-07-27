@@ -96,8 +96,13 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          plugin_last_seen_at: string | null
           updated_at: string
           user_id: string
+          verification_method: string | null
+          verification_status: string
+          verification_token: string
+          verified_at: string | null
           widget_config: Json
         }
         Insert: {
@@ -107,8 +112,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          plugin_last_seen_at?: string | null
           updated_at?: string
           user_id: string
+          verification_method?: string | null
+          verification_status?: string
+          verification_token?: string
+          verified_at?: string | null
           widget_config?: Json
         }
         Update: {
@@ -118,8 +128,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          plugin_last_seen_at?: string | null
           updated_at?: string
           user_id?: string
+          verification_method?: string | null
+          verification_status?: string
+          verification_token?: string
+          verified_at?: string | null
           widget_config?: Json
         }
         Relationships: []

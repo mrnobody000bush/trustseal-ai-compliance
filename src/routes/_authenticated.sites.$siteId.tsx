@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowLeft, Play, Trash2, Copy, Check } from "lucide-react";
+import { ArrowLeft, Play, Trash2, Copy, Check, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { useAdminMode } from "@/lib/admin-mode";
 import { useFreeScanCount } from "@/lib/plan-limits";
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
+import { DomainVerificationCard } from "@/components/domain-verification-card";
 
 export const Route = createFileRoute("/_authenticated/sites/$siteId")({
   component: SitePage,
@@ -53,7 +54,7 @@ function SitePage() {
   const { count, limit, increment, reached } = useFreeScanCount();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["site", siteId],
     queryFn: () => getSiteFn({ data: { siteId } }),
   });
@@ -89,6 +90,7 @@ function SitePage() {
   const site = data.site;
   const scans = data.scans;
   const latest = scans[0];
+  const isVerified = site.verification_status === "verified";
   const config = (site.widget_config as Record<string, unknown>) ?? {};
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const embedCode = `<script async src="${origin}/embed.js" data-trustseal="${site.id}"></script>`;
@@ -127,6 +129,17 @@ function SitePage() {
         </div>
       </div>
 
+      <DomainVerificationCard
+        siteId={site.id}
+        domain={site.domain}
+        token={site.verification_token}
+        status={site.verification_status}
+        method={site.verification_method}
+        verifiedAt={site.verified_at}
+        lastSeenAt={site.plugin_last_seen_at}
+        onRefresh={() => { refetch(); }}
+      />
+
       {latest && (
         <div className="mt-6 rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center justify-between">
@@ -153,16 +166,22 @@ function SitePage() {
         <div className="rounded-2xl border border-border bg-card p-6">
           <h2 className="font-semibold">Embed code</h2>
           <p className="mt-1 text-xs text-muted-foreground">Paste this before &lt;/body&gt; on your storefront.</p>
-          <div className="mt-4 rounded-lg border border-border bg-surface p-3 font-mono text-xs break-all">
+          <div className={`mt-4 rounded-lg border border-border bg-surface p-3 font-mono text-xs break-all ${isVerified ? "" : "blur-[3px] select-none"}`}>
             {embedCode}
           </div>
-          <Button
-            variant="outline" size="sm" className="mt-3"
-            onClick={() => { navigator.clipboard.writeText(embedCode); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-          >
-            {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
-            {copied ? "Copied" : "Copy"}
-          </Button>
+          {isVerified ? (
+            <Button
+              variant="outline" size="sm" className="mt-3"
+              onClick={() => { navigator.clipboard.writeText(embedCode); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+            >
+              {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+              {copied ? "Copied" : "Copy"}
+            </Button>
+          ) : (
+            <p className="mt-3 flex items-center gap-2 text-xs text-warning">
+              <Lock className="h-3.5 w-3.5" /> Locked until domain ownership is verified.
+            </p>
+          )}
         </div>
 
         <WidgetForm
