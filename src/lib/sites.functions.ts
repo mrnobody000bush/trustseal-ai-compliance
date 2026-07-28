@@ -94,3 +94,86 @@ export const revokeVerification = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const verifyMetaTag = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => IdSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: site, error } = await context.supabase
+      .from("sites")
+      .select("id, domain, verification_token, verification_status")
+      .eq("id", data.siteId)
+      .single();
+    if (error || !site) throw new Error("Site not found");
+
+    const host = site.domain
+      .trim()
+      .replace(/^https?:\/\//, "")
+      .replace(/\/.*$/, "");
+    const candidates = [`https://${host}`, `http://${host}`];
+
+    let html = "";
+    let fetchError = "";
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, {
+          headers: { "user-agent": "TrustSealBot/1.0 (+verification)" },
+          redirect: "follow",
+        });
+        if (!res.ok) {
+          fetchError = `Site responded with ${res.status}`;
+          continue;
+        }
+        html = (await res.text()).slice(0, 400_000);
+        fetchError = "";
+        break;
+      } catch (e) {
+        fetchError = e instanceof Error ? e.message : "Could not reach site";
+      }
+    }
+
+    if (!html) {
+      return { ok: false, reason: fetchError || "Could not reach your site" };
+    }
+
+    const found = new RegExp(
+      `<meta[^>]+name=["']trustseal-verification["'][^>]+content=["']${site.verification_token}["']`,
+      "i",
+    ).test(html) ||
+      new RegExp(
+        `<meta[^>]+content=["']${site.verification_token}["'][^>]+name=["']trustseal-verification["']`,
+        "i",
+      ).test(html);
+
+    if (!found) {
+      return { ok: false, reason: "Meta tag not found in the page <head>" };
+    }
+
+    const now = new Date().toISOString();
+    const { error: upErr } = await context.supabase
+      .from("sites")
+      .update({
+        verification_status: "verified",
+        verification_method: "meta_tag",
+        verified_at: site.verification_status === "verified" ? undefined : now,
+      })
+      .eq("id", site.id);
+    if (upErr) throw new Error(upErr.message);
+    return { ok: true };
+  });
+
+export const forceVerify = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => IdSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("sites")
+      .update({
+        verification_status: "verified",
+        verification_method: "manual_override",
+        verified_at: new Date().toISOString(),
+      })
+      .eq("id", data.siteId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
