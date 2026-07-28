@@ -21,6 +21,7 @@ import { useFreeScanCount } from "@/lib/plan-limits";
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
+import { INDUSTRIES, isHighRisk, type Industry } from "@/lib/industry-rules";
 
 export const Route = createFileRoute("/_authenticated/sites/$siteId")({
   component: SitePage,
