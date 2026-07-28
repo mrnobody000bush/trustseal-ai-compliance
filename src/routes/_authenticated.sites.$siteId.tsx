@@ -60,7 +60,7 @@ function SitePage() {
     queryFn: () => getSiteFn({ data: { siteId } }),
   });
 
-  const [industry, setIndustry] = useState<"ecommerce" | "hr" | "edtech" | "fintech">("ecommerce");
+  const [industry, setIndustry] = useState<Industry>("ecommerce");
 
   const scan = useMutation({
     mutationFn: () => runScanFn({ data: { siteId, industry } }),
