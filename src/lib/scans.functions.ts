@@ -3,7 +3,19 @@ import { z } from "zod";
 import { generateObject, NoObjectGeneratedError } from "ai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const ScanSchema = z.object({ siteId: z.string().uuid() });
+const ScanSchema = z.object({
+  siteId: z.string().uuid(),
+  industry: z
+    .enum(["ecommerce", "hr", "edtech", "fintech"])
+    .optional(),
+});
+
+const INDUSTRY_LABELS: Record<string, string> = {
+  ecommerce: "E-commerce & Retail",
+  hr: "HR & Recruitment (High Risk under EU AI Act Annex III)",
+  edtech: "EdTech & Education (High Risk under EU AI Act Annex III)",
+  fintech: "FinTech & SaaS",
+};
 
 const FindingSchema = z.object({
   severity: z.enum(["low", "medium", "high", "critical"]),
