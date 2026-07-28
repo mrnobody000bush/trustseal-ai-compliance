@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { generateObject, NoObjectGeneratedError } from "ai";
+import { generateText } from "ai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   INDUSTRY_VALUES,
@@ -15,18 +15,36 @@ const ScanSchema = z.object({
 });
 
 const FindingSchema = z.object({
-  severity: z.enum(["low", "medium", "high", "critical"]),
-  category: z.string(),
-  title: z.string(),
-  description: z.string(),
-  recommendation: z.string(),
+  severity: z
+    .string()
+    .transform((s) => s.toLowerCase())
+    .pipe(z.enum(["low", "medium", "high", "critical"]).catch("medium")),
+  category: z.string().default("General"),
+  title: z.string().default("Finding"),
+  description: z.string().default(""),
+  recommendation: z.string().default(""),
 });
 
 const ReportSchema = z.object({
-  score: z.number(),
-  summary: z.string(),
-  findings: z.array(FindingSchema),
+  score: z.coerce.number().default(0),
+  summary: z.string().default(""),
+  findings: z.array(FindingSchema).default([]),
 });
+
+function extractJson(text: string): unknown {
+  const cleaned = text
+    .replace(/^\s*```(?:json)?/i, "")
+    .replace(/```\s*$/, "")
+    .trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start === -1 || end <= start) throw new Error("AI returned no JSON object");
+    return JSON.parse(cleaned.slice(start, end + 1));
+  }
+}
 
 async function fetchSiteText(url: string): Promise<string> {
   try {
@@ -103,32 +121,25 @@ Evaluate strictly against the sector-specific criteria above and apply the state
         : ""
     }
 
-Be specific and actionable. Return ${isHighRisk(industry) ? "6–10" : "4–8"} findings.`;
+Be specific and actionable. Return ${isHighRisk(industry) ? "6–10" : "4–8"} findings.
+
+Respond with ONLY a raw JSON object matching this shape, no markdown, no commentary:
+{"score":0,"summary":"","findings":[{"severity":"low","category":"","title":"","description":"","recommendation":""}]}`;
 
     let report: z.infer<typeof ReportSchema>;
     try {
-      const { object } = await generateObject({
+      const { text } = await generateText({
         model: gateway("google/gemini-3-flash-preview"),
-        schema: ReportSchema,
         prompt,
       });
-      report = object;
+      report = ReportSchema.parse(extractJson(text));
     } catch (err) {
-      if (NoObjectGeneratedError.isInstance(err)) {
-        try {
-          report = ReportSchema.parse(JSON.parse(err.text ?? "{}"));
-        } catch {
-          await context.supabase.from("compliance_scans").update({
-            status: "failed",
-            error: "AI returned invalid report format",
-          }).eq("id", scanRow.id);
-          throw new Error("AI returned invalid report format");
-        }
-      } else {
-        const msg = err instanceof Error ? err.message : String(err);
-        await context.supabase.from("compliance_scans").update({ status: "failed", error: msg }).eq("id", scanRow.id);
-        throw err;
-      }
+      const msg = err instanceof Error ? err.message : String(err);
+      await context.supabase
+        .from("compliance_scans")
+        .update({ status: "failed", error: msg })
+        .eq("id", scanRow.id);
+      throw new Error(`Scan failed: ${msg}`);
     }
 
     const score = Math.max(0, Math.min(100, Math.round(report.score)));
