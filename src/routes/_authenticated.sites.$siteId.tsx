@@ -59,8 +59,10 @@ function SitePage() {
     queryFn: () => getSiteFn({ data: { siteId } }),
   });
 
+  const [industry, setIndustry] = useState<"ecommerce" | "hr" | "edtech" | "fintech">("ecommerce");
+
   const scan = useMutation({
-    mutationFn: () => runScanFn({ data: { siteId } }),
+    mutationFn: () => runScanFn({ data: { siteId, industry } }),
     onSuccess: () => {
       toast.success("Scan complete");
       qc.invalidateQueries({ queryKey: ["site", siteId] });
@@ -106,7 +108,19 @@ function SitePage() {
           <h1 className="text-2xl font-bold">{site.name}</h1>
           <div className="text-sm text-muted-foreground">{site.domain}</div>
         </div>
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col items-end gap-2">
+          <div className="w-[260px] space-y-1.5 text-left">
+            <Label htmlFor="industry-select">Industry / Sector</Label>
+            <Select value={industry} onValueChange={(v) => setIndustry(v as typeof industry)}>
+              <SelectTrigger id="industry-select"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ecommerce">E-commerce &amp; Retail</SelectItem>
+                <SelectItem value="hr">HR &amp; Recruitment (High Risk)</SelectItem>
+                <SelectItem value="edtech">EdTech &amp; Education (High Risk)</SelectItem>
+                <SelectItem value="fintech">FinTech &amp; SaaS</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex gap-2">
             <Button onClick={handleScan} disabled={scan.isPending}>
               <Play className="mr-2 h-4 w-4" />
