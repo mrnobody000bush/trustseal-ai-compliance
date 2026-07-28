@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { generateObject, NoObjectGeneratedError } from "ai";
+import { generateText } from "ai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   INDUSTRY_VALUES,
@@ -27,6 +27,21 @@ const ReportSchema = z.object({
   summary: z.string(),
   findings: z.array(FindingSchema),
 });
+
+function extractJson(text: string): unknown {
+  const cleaned = text
+    .replace(/^\s*```(?:json)?/i, "")
+    .replace(/```\s*$/, "")
+    .trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start === -1 || end <= start) throw new Error("AI returned no JSON object");
+    return JSON.parse(cleaned.slice(start, end + 1));
+  }
+}
 
 async function fetchSiteText(url: string): Promise<string> {
   try {
