@@ -20,6 +20,7 @@ export type Database = {
           error: string | null
           findings: Json
           id: string
+          industry: string
           raw_report: Json | null
           score: number | null
           site_id: string
@@ -32,6 +33,7 @@ export type Database = {
           error?: string | null
           findings?: Json
           id?: string
+          industry?: string
           raw_report?: Json | null
           score?: number | null
           site_id: string
@@ -44,6 +46,7 @@ export type Database = {
           error?: string | null
           findings?: Json
           id?: string
+          industry?: string
           raw_report?: Json | null
           score?: number | null
           site_id?: string

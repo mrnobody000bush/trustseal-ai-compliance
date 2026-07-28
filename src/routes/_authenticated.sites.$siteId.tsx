@@ -21,6 +21,7 @@ import { useFreeScanCount } from "@/lib/plan-limits";
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
+import { INDUSTRIES, isHighRisk, type Industry } from "@/lib/industry-rules";
 
 export const Route = createFileRoute("/_authenticated/sites/$siteId")({
   component: SitePage,
@@ -59,7 +60,7 @@ function SitePage() {
     queryFn: () => getSiteFn({ data: { siteId } }),
   });
 
-  const [industry, setIndustry] = useState<"ecommerce" | "hr" | "edtech" | "fintech">("ecommerce");
+  const [industry, setIndustry] = useState<Industry>("ecommerce");
 
   const scan = useMutation({
     mutationFn: () => runScanFn({ data: { siteId, industry } }),
@@ -114,12 +115,18 @@ function SitePage() {
             <Select value={industry} onValueChange={(v) => setIndustry(v as typeof industry)}>
               <SelectTrigger id="industry-select"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ecommerce">E-commerce &amp; Retail</SelectItem>
-                <SelectItem value="hr">HR &amp; Recruitment (High Risk)</SelectItem>
-                <SelectItem value="edtech">EdTech &amp; Education (High Risk)</SelectItem>
-                <SelectItem value="fintech">FinTech &amp; SaaS</SelectItem>
+                {INDUSTRIES.map((i) => (
+                  <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              {isHighRisk(industry)
+                ? "Stricter audit: EU AI Act Annex III high-risk + GDPR personal-data rules."
+                : industry === "fintech"
+                  ? "Audit includes financial standards (PSD2, DORA, credit-scoring transparency)."
+                  : "Standard consumer-protection and AI transparency audit."}
+            </p>
           </div>
           <div className="flex gap-2">
             <Button onClick={handleScan} disabled={scan.isPending}>
