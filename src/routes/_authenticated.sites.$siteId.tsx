@@ -114,12 +114,18 @@ function SitePage() {
             <Select value={industry} onValueChange={(v) => setIndustry(v as typeof industry)}>
               <SelectTrigger id="industry-select"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ecommerce">E-commerce &amp; Retail</SelectItem>
-                <SelectItem value="hr">HR &amp; Recruitment (High Risk)</SelectItem>
-                <SelectItem value="edtech">EdTech &amp; Education (High Risk)</SelectItem>
-                <SelectItem value="fintech">FinTech &amp; SaaS</SelectItem>
+                {INDUSTRIES.map((i) => (
+                  <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              {isHighRisk(industry)
+                ? "Stricter audit: EU AI Act Annex III high-risk + GDPR personal-data rules."
+                : industry === "fintech"
+                  ? "Audit includes financial standards (PSD2, DORA, credit-scoring transparency)."
+                  : "Standard consumer-protection and AI transparency audit."}
+            </p>
           </div>
           <div className="flex gap-2">
             <Button onClick={handleScan} disabled={scan.isPending}>
