@@ -2,20 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { generateObject, NoObjectGeneratedError } from "ai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  INDUSTRY_VALUES,
+  buildIndustryPromptSection,
+  isHighRisk,
+  type Industry,
+} from "@/lib/industry-rules";
 
 const ScanSchema = z.object({
   siteId: z.string().uuid(),
-  industry: z
-    .enum(["ecommerce", "hr", "edtech", "fintech"])
-    .optional(),
+  industry: z.enum(INDUSTRY_VALUES).optional(),
 });
-
-const INDUSTRY_LABELS: Record<string, string> = {
-  ecommerce: "E-commerce & Retail",
-  hr: "HR & Recruitment (High Risk under EU AI Act Annex III)",
-  edtech: "EdTech & Education (High Risk under EU AI Act Annex III)",
-  fintech: "FinTech & SaaS",
-};
 
 const FindingSchema = z.object({
   severity: z.enum(["low", "medium", "high", "critical"]),
@@ -67,9 +64,11 @@ export const runScan = createServerFn({ method: "POST" })
     if (siteErr || !site) throw new Error("Site not found");
 
     // create pending scan
+    const industry: Industry = data.industry ?? "ecommerce";
+
     const { data: scanRow, error: scanErr } = await context.supabase
       .from("compliance_scans")
-      .insert({ site_id: site.id, user_id: context.userId, status: "running" })
+      .insert({ site_id: site.id, user_id: context.userId, status: "running", industry })
       .select("*")
       .single();
     if (scanErr || !scanRow) throw new Error(scanErr?.message ?? "Failed to create scan");
@@ -80,34 +79,31 @@ export const runScan = createServerFn({ method: "POST" })
     const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
     const gateway = createLovableAiGatewayProvider(apiKey);
 
-    const prompt = `You are an EU AI Act (Regulation 2024/1689) compliance auditor for e-commerce websites. The core AI Act obligations for general-purpose AI systems, transparency, and high-risk uses take effect in August 2026.
+    const prompt = `You are an EU AI Act (Regulation 2024/1689) compliance auditor. The core AI Act obligations for transparency and high-risk uses take effect in August 2026.
 
-Analyze the following storefront and return a compliance report as JSON.
+Analyze the following website and return a compliance report as JSON.
 
 STORE: ${site.name} (${url})
-INDUSTRY / SECTOR: ${INDUSTRY_LABELS[data.industry ?? "ecommerce"]}
+
+${buildIndustryPromptSection(industry)}
 
 PAGE CONTENT (truncated):
 """
-${pageText || "(could not fetch page content; base your report on the domain name and general expectations for an EU-facing e-commerce site)"}
+${pageText || "(could not fetch page content; base your report on the domain name and general expectations for an EU-facing website in this sector)"}
 """
 
 Return:
 - score: integer 0-100 (100 = fully compliant)
-- summary: one-paragraph plain-language summary
-- findings: array of objects with severity ("low"|"medium"|"high"|"critical"), category (e.g. "AI Transparency", "Reviews", "Privacy", "Pricing algorithms", "Chatbot disclosure"), title, description, recommendation
+- summary: one-paragraph plain-language summary that names the sector and its regulatory regime
+- findings: array of objects with severity ("low"|"medium"|"high"|"critical"), category, title, description, recommendation
 
-Check for:
-1. Disclosure of AI-generated product images/descriptions
-2. Chatbot / AI assistant disclosure to users
-3. Personalized pricing transparency
-4. Recommendation system opacity
-5. Review authenticity signals
-6. Cookie & data-processing disclosures
-7. Deepfake / synthetic media labels
-8. Age verification for restricted goods
+Evaluate strictly against the sector-specific criteria above and apply the stated scoring policy.${
+      isHighRisk(industry)
+        ? " This is a HIGH-RISK sector: prioritise personal-data protection (GDPR) and automated-decision safeguards in your findings."
+        : ""
+    }
 
-Be specific and actionable. Return 4–8 findings.`;
+Be specific and actionable. Return ${isHighRisk(industry) ? "6–10" : "4–8"} findings.`;
 
     let report: z.infer<typeof ReportSchema>;
     try {
@@ -142,6 +138,7 @@ Be specific and actionable. Return 4–8 findings.`;
         status: "completed",
         score,
         summary: report.summary,
+        industry,
         findings: report.findings,
         raw_report: report,
       })
