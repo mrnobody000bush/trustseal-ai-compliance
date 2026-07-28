@@ -15,17 +15,20 @@ const ScanSchema = z.object({
 });
 
 const FindingSchema = z.object({
-  severity: z.enum(["low", "medium", "high", "critical"]),
-  category: z.string(),
-  title: z.string(),
-  description: z.string(),
-  recommendation: z.string(),
+  severity: z
+    .string()
+    .transform((s) => s.toLowerCase())
+    .pipe(z.enum(["low", "medium", "high", "critical"]).catch("medium")),
+  category: z.string().default("General"),
+  title: z.string().default("Finding"),
+  description: z.string().default(""),
+  recommendation: z.string().default(""),
 });
 
 const ReportSchema = z.object({
-  score: z.number(),
-  summary: z.string(),
-  findings: z.array(FindingSchema),
+  score: z.coerce.number().default(0),
+  summary: z.string().default(""),
+  findings: z.array(FindingSchema).default([]),
 });
 
 function extractJson(text: string): unknown {
