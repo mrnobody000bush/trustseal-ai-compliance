@@ -59,8 +59,10 @@ function SitePage() {
     queryFn: () => getSiteFn({ data: { siteId } }),
   });
 
+  const [industry, setIndustry] = useState<"ecommerce" | "hr" | "edtech" | "fintech">("ecommerce");
+
   const scan = useMutation({
-    mutationFn: () => runScanFn({ data: { siteId } }),
+    mutationFn: () => runScanFn({ data: { siteId, industry } }),
     onSuccess: () => {
       toast.success("Scan complete");
       qc.invalidateQueries({ queryKey: ["site", siteId] });
