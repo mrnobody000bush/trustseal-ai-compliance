@@ -225,14 +225,22 @@ function SitePage() {
             {scans.map((s) => {
               const findings = Array.isArray(s.findings) ? (s.findings as Array<Record<string, string>>) : [];
               return (
-                <details key={s.id} className="rounded-2xl border border-border bg-card p-5">
-                  <summary className="flex cursor-pointer items-center justify-between">
+                <details key={s.id} className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
                     <div>
                       <div className="font-medium">{new Date(s.created_at).toLocaleString()}</div>
                       <div className="text-xs text-muted-foreground">{s.status}</div>
                     </div>
-                    <div className="text-2xl font-bold text-primary">{s.score ?? "—"}</div>
+                    <div className="flex items-center gap-4">
+                      <span className="flex items-center gap-1 text-xs font-medium text-primary">
+                        <span className="group-open:hidden">View Details</span>
+                        <span className="hidden group-open:inline">Hide Details</span>
+                        <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                      </span>
+                      <div className="text-2xl font-bold text-primary">{s.score ?? "—"}</div>
+                    </div>
                   </summary>
+
                   {s.summary && <p className="mt-4 text-sm text-muted-foreground">{s.summary}</p>}
                   {findings.length > 0 && (
                     <div className="mt-4 space-y-3">
