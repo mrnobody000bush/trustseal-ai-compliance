@@ -85,6 +85,7 @@ export const runScan = createServerFn({ method: "POST" })
 Analyze the following storefront and return a compliance report as JSON.
 
 STORE: ${site.name} (${url})
+INDUSTRY / SECTOR: ${INDUSTRY_LABELS[data.industry ?? "ecommerce"]}
 
 PAGE CONTENT (truncated):
 """
