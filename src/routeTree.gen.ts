@@ -20,6 +20,7 @@ import { Route as AuthenticatedChoosePlanRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminPanelRouteImport } from './routes/_authenticated.admin-panel'
 import { Route as ApiPublicWidgetEventRouteImport } from './routes/api/public/widget-event'
 import { Route as ApiPublicPluginVerifyRouteImport } from './routes/api/public/plugin-verify'
+import { Route as ApiPublicAutoVerifyRouteImport } from './routes/api/public/auto-verify'
 import { Route as AuthenticatedSitesSiteIdRouteImport } from './routes/_authenticated.sites.$siteId'
 import { Route as ApiPublicWidgetSiteIdRouteImport } from './routes/api/public/widget.$siteId'
 
@@ -77,6 +78,11 @@ const ApiPublicPluginVerifyRoute = ApiPublicPluginVerifyRouteImport.update({
   path: '/api/public/plugin-verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAutoVerifyRoute = ApiPublicAutoVerifyRouteImport.update({
+  id: '/api/public/auto-verify',
+  path: '/api/public/auto-verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSitesSiteIdRoute =
   AuthenticatedSitesSiteIdRouteImport.update({
     id: '/sites/$siteId',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/choose-plan': typeof AuthenticatedChoosePlanRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
+  '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
   '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/choose-plan': typeof AuthenticatedChoosePlanRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
+  '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
   '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_authenticated/choose-plan': typeof AuthenticatedChoosePlanRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
+  '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
   '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/choose-plan'
     | '/dashboard'
     | '/sites/$siteId'
+    | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
     | '/api/public/widget-event'
     | '/api/public/widget/$siteId'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/choose-plan'
     | '/dashboard'
     | '/sites/$siteId'
+    | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
     | '/api/public/widget-event'
     | '/api/public/widget/$siteId'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated/choose-plan'
     | '/_authenticated/dashboard'
     | '/_authenticated/sites/$siteId'
+    | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
     | '/api/public/widget-event'
     | '/api/public/widget/$siteId'
@@ -186,6 +198,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PricingRoute: typeof PricingRoute
   WidgetDemoRoute: typeof WidgetDemoRoute
+  ApiPublicAutoVerifyRoute: typeof ApiPublicAutoVerifyRoute
   ApiPublicPluginVerifyRoute: typeof ApiPublicPluginVerifyRoute
   ApiPublicWidgetEventRoute: typeof ApiPublicWidgetEventRoute
   ApiPublicWidgetSiteIdRoute: typeof ApiPublicWidgetSiteIdRoute
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPluginVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/auto-verify': {
+      id: '/api/public/auto-verify'
+      path: '/api/public/auto-verify'
+      fullPath: '/api/public/auto-verify'
+      preLoaderRoute: typeof ApiPublicAutoVerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/sites/$siteId': {
       id: '/_authenticated/sites/$siteId'
       path: '/sites/$siteId'
@@ -312,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PricingRoute: PricingRoute,
   WidgetDemoRoute: WidgetDemoRoute,
+  ApiPublicAutoVerifyRoute: ApiPublicAutoVerifyRoute,
   ApiPublicPluginVerifyRoute: ApiPublicPluginVerifyRoute,
   ApiPublicWidgetEventRoute: ApiPublicWidgetEventRoute,
   ApiPublicWidgetSiteIdRoute: ApiPublicWidgetSiteIdRoute,

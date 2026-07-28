@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  ShieldCheck, ShieldAlert, Copy, Check, RefreshCw, Download, Code2, Plug, Zap,
+  ShieldCheck, ShieldAlert, Copy, Check, RefreshCw, Download, Code2, Plug, Zap, Sparkles, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,14 +24,15 @@ const METHOD_LABEL: Record<string, string> = {
   wordpress_plugin: "the TrustSeal WordPress plugin",
   meta_tag: "an HTML meta tag",
   manual_override: "manual override (debug mode)",
+  auto_script: "the zero-touch auto-activation script",
 };
 
 export function DomainVerificationCard({
   siteId, domain, token, status, method, verifiedAt, lastSeenAt, onRefresh,
 }: Props) {
   const qc = useQueryClient();
-  const [copied, setCopied] = useState<"tag" | "token" | null>(null);
-  const [tab, setTab] = useState<"meta" | "plugin">("meta");
+  const [copied, setCopied] = useState<"tag" | "token" | "script" | null>(null);
+  const [tab, setTab] = useState<"auto" | "meta" | "plugin">("auto");
   const [showForce, setShowForce] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
 
@@ -77,9 +78,10 @@ export function DomainVerificationCard({
   });
 
   const metaTag = `<meta name="trustseal-verification" content="${token}">`;
+  const scriptTag = `<script async src="https://project--0ffdbdd8-3f9d-466a-893c-6705cb54b589.lovable.app/embed.js" data-trustseal="${token}"></script>`;
   const verified = status === "verified";
 
-  const copy = (text: string, key: "tag" | "token") => {
+  const copy = (text: string, key: "tag" | "token" | "script") => {
     navigator.clipboard.writeText(text);
     setCopied(key);
     setTimeout(() => setCopied(null), 1500);
@@ -107,9 +109,17 @@ export function DomainVerificationCard({
             </p>
           </div>
         </div>
-        <Badge variant={verified ? "default" : "secondary"}>
-          {verified ? "Active Compliance" : "Pending Verification"}
-        </Badge>
+        <div className="flex flex-col items-end gap-1">
+          <Badge variant={verified ? "default" : "secondary"}>
+            {verified ? "Active Compliance" : "Pending Verification"}
+          </Badge>
+          {!verified && (
+            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Waiting for the first ping from your website…
+            </span>
+          )}
+        </div>
       </div>
 
       {verified ? (
@@ -126,6 +136,15 @@ export function DomainVerificationCard({
         <div className="mt-5 space-y-5">
           {/* Method switcher */}
           <div className="inline-flex rounded-xl border border-border bg-surface p-1">
+            <button
+              type="button"
+              onClick={() => setTab("auto")}
+              className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                tab === "auto" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Zero-Touch Auto-Activation
+            </button>
             <button
               type="button"
               onClick={() => setTab("meta")}
@@ -146,7 +165,43 @@ export function DomainVerificationCard({
             </button>
           </div>
 
-          {tab === "meta" ? (
+          {tab === "auto" ? (
+            <ol className="space-y-3 text-sm">
+              <li className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">1</span>
+                <span className="flex-1">
+                  Just copy this script and paste it right before the{" "}
+                  <code className="font-mono">&lt;/body&gt;</code> tag on your website.
+                  Verification runs automatically on the first page load.
+                  <div className="mt-2 flex items-center gap-2">
+                    <code className="flex-1 rounded-lg border border-border bg-surface p-2 font-mono text-xs break-all">
+                      {scriptTag}
+                    </code>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      aria-label="Copy activation script"
+                      onClick={() => copy(scriptTag, "script")}
+                    >
+                      {copied === "script" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">2</span>
+                <span className="flex-1">
+                  Open your site once — the badge loads, pings us, and the status flips to{" "}
+                  <span className="font-medium">Active Compliance</span> by itself.
+                  <div className="mt-2">
+                    <Button size="sm" variant="outline" onClick={onRefresh}>
+                      <RefreshCw className="mr-2 h-4 w-4" /> Check status
+                    </Button>
+                  </div>
+                </span>
+              </li>
+            </ol>
+          ) : tab === "meta" ? (
             <ol className="space-y-3 text-sm">
               <li className="flex gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">1</span>

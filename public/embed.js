@@ -4,6 +4,21 @@
   var siteId = script.getAttribute("data-trustseal");
   if (!siteId) return;
 
+  // Zero-touch auto-activation: ping our API on first load
+  try {
+    var apiBase = (script.src || "").split("/embed.js")[0];
+    fetch(apiBase + "/api/public/auto-verify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        token: siteId,
+        domain: window.location.hostname,
+        url: window.location.href
+      }),
+      keepalive: true
+    }).catch(function () {});
+  } catch (e) {}
+
   // ИИ-логика: автоматически проверяем, есть ли чат-бот на сайте клиента
   var hasChatbot = !!document.querySelector('iframe[src*="chat"], div[class*="chat"], #hubspot-messages-iframe-container, [id*="chat"]');
 
