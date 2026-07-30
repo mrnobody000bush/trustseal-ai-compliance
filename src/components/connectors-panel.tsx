@@ -117,5 +117,17 @@ export function ConnectorsPanel({
         );
       })}
     </div>
+
+    {token && (
+      <div className="rounded-2xl border border-border bg-card p-5">
+        <h3 className="font-semibold">Widget snippet</h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Same snippet everywhere — connectors inject exactly this code for you.
+        </p>
+        <WidgetSnippet token={token} className="mt-4" />
+      </div>
+    )}
+    </div>
   );
 }
+
