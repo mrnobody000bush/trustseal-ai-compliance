@@ -87,7 +87,15 @@ function DashboardPage() {
       <div className="mt-8">
         {isLoading ? (
           <div className="text-muted-foreground">Loading…</div>
+        ) : isError ? (
+          <QueryErrorState
+            title="Не удалось загрузить список магазинов"
+            error={error}
+            onRetry={() => refetch()}
+            showHome={false}
+          />
         ) : sites.length === 0 ? (
+
           <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-12 text-center">
             <ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
             <p className="mt-3 text-muted-foreground">No stores connected yet.</p>
