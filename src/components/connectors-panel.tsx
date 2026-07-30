@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QueryErrorState } from "@/components/query-error-state";
 import { useServerFn } from "@tanstack/react-start";
 import { Github, Rocket, Boxes, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
