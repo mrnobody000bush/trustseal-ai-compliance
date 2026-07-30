@@ -119,23 +119,50 @@ function AdminPanel() {
     onError: (e: Error) => toast.error(e.message ?? "Impersonation failed"),
   });
 
-  const { data: adminCheck, isLoading: checking } = useQuery({
+  const {
+    data: adminCheck,
+    isLoading: checking,
+    isError: checkFailed,
+    error: checkError,
+    refetch: refetchAdmin,
+  } = useQuery({
     queryKey: ["is-admin"],
     queryFn: () => isAdminFn(),
     staleTime: 60_000,
+    retry: 1,
   });
 
   const isAdmin = adminCheck?.isAdmin;
 
-  const { data, isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError: statsFailed,
+    error: statsError,
+    refetch: refetchStats,
+  } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: () => statsFn(),
     enabled: !!isAdmin,
+    retry: 1,
   });
 
   if (checking) {
     return <main className="mx-auto max-w-6xl px-6 py-10 text-muted-foreground">Loading…</main>;
   }
+
+  if (checkFailed) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <QueryErrorState
+          title="Не удалось проверить права доступа"
+          error={checkError}
+          onRetry={() => refetchAdmin()}
+        />
+      </main>
+    );
+  }
+
 
   if (!isAdmin) {
     return (
