@@ -114,8 +114,7 @@ function SitePage() {
   const latest = scans[0];
   const isVerified = site.verification_status === "verified";
   const config = (site.widget_config as Record<string, unknown>) ?? {};
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const embedCode = `<script async src="${origin}/embed.js" data-trustseal="${site.id}"></script>`;
+  const embedCode = buildWidgetSnippet(site.verification_token);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
