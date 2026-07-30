@@ -23,6 +23,8 @@ import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
 import { ConnectorsPanel } from "@/components/connectors-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QueryErrorState } from "@/components/query-error-state";
+
 
 import { INDUSTRIES, isHighRisk, type Industry } from "@/lib/industry-rules";
 
