@@ -7,10 +7,14 @@ export const Route = createFileRoute("/api/public/widget/$siteId")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const supabase = supabaseAdmin;
 
+        // Accept the verification token (canonical) or the legacy site id.
+        const key = params.siteId;
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key);
+
         const { data: site, error } = await supabase
           .from("sites")
           .select("id, name, domain, widget_config, is_active")
-          .eq("id", params.siteId)
+          .eq(isUuid ? "id" : "verification_token", key)
           .eq("is_active", true)
           .eq("verification_status", "verified")
           .maybeSingle();

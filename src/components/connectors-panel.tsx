@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { listConnectors, toggleConnector } from "@/lib/connectors.functions";
+import { WidgetSnippet } from "@/components/widget-snippet";
 
 type ConnectorType = "github_replit" | "vercel_netlify" | "wordpress_mcp";
 
@@ -35,7 +36,11 @@ const CONNECTORS: Array<{
   },
 ];
 
-export function ConnectorsPanel({ siteId, onRefresh }: { siteId: string; onRefresh?: () => void }) {
+export function ConnectorsPanel({
+  siteId,
+  token,
+  onRefresh,
+}: { siteId: string; token?: string; onRefresh?: () => void }) {
   const qc = useQueryClient();
   const listFn = useServerFn(listConnectors);
   const toggleFn = useServerFn(toggleConnector);
@@ -73,7 +78,9 @@ export function ConnectorsPanel({ siteId, onRefresh }: { siteId: string; onRefre
   }
 
   return (
+    <div className="space-y-4">
     <div className="grid gap-4 md:grid-cols-3">
+
 
       {CONNECTORS.map((c) => {
         const active = isOn(c.type);
@@ -111,5 +118,17 @@ export function ConnectorsPanel({ siteId, onRefresh }: { siteId: string; onRefre
         );
       })}
     </div>
+
+    {token && (
+      <div className="rounded-2xl border border-border bg-card p-5">
+        <h3 className="font-semibold">Widget snippet</h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Same snippet everywhere — connectors inject exactly this code for you.
+        </p>
+        <WidgetSnippet token={token} className="mt-4" />
+      </div>
+    )}
+    </div>
   );
 }
+
