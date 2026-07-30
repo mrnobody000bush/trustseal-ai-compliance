@@ -93,7 +93,19 @@ function SitePage() {
   };
 
   const [copied, setCopied] = useState(false);
-  if (isLoading || !data) return <main className="mx-auto max-w-5xl px-6 py-10 text-muted-foreground">Loading…</main>;
+  if (isLoading) return <main className="mx-auto max-w-5xl px-6 py-10 text-muted-foreground">Loading…</main>;
+  if (isError || !data)
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <QueryErrorState
+          title="Не удалось загрузить данные сайта"
+          error={isError ? error : undefined}
+          description={!isError && !data ? "Магазин не найден или был удалён." : undefined}
+          onRetry={() => refetch()}
+        />
+      </main>
+    );
+
 
   const site = data.site;
   const scans = data.scans;
