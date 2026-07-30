@@ -21,6 +21,9 @@ import { useFreeScanCount } from "@/lib/plan-limits";
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
+import { ConnectorsPanel } from "@/components/connectors-panel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { INDUSTRIES, isHighRisk, type Industry } from "@/lib/industry-rules";
 
 export const Route = createFileRoute("/_authenticated/sites/$siteId")({
@@ -150,16 +153,28 @@ function SitePage() {
         </div>
       </div>
 
-      <DomainVerificationCard
-        siteId={site.id}
-        domain={site.domain}
-        token={site.verification_token}
-        status={site.verification_status}
-        method={site.verification_method}
-        verifiedAt={site.verified_at}
-        lastSeenAt={site.plugin_last_seen_at}
-        onRefresh={() => { refetch(); }}
-      />
+      <Tabs defaultValue="verification" className="mt-6">
+        <TabsList>
+          <TabsTrigger value="verification">Domain ownership</TabsTrigger>
+          <TabsTrigger value="connectors">Connectors &amp; MCP</TabsTrigger>
+        </TabsList>
+        <TabsContent value="verification">
+          <DomainVerificationCard
+            siteId={site.id}
+            domain={site.domain}
+            token={site.verification_token}
+            status={site.verification_status}
+            method={site.verification_method}
+            verifiedAt={site.verified_at}
+            lastSeenAt={site.plugin_last_seen_at}
+            onRefresh={() => { refetch(); }}
+          />
+        </TabsContent>
+        <TabsContent value="connectors" className="mt-4">
+          <ConnectorsPanel siteId={site.id} onRefresh={() => { refetch(); }} />
+        </TabsContent>
+      </Tabs>
+
 
       {latest && (
         <div className="mt-6 rounded-2xl border border-border bg-card p-6">

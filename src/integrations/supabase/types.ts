@@ -64,6 +64,47 @@ export type Database = {
           },
         ]
       }
+      domain_connectors: {
+        Row: {
+          connected: boolean
+          connector_type: string
+          created_at: string
+          id: string
+          meta: Json
+          site_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected?: boolean
+          connector_type: string
+          created_at?: string
+          id?: string
+          meta?: Json
+          site_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected?: boolean
+          connector_type?: string
+          created_at?: string
+          id?: string
+          meta?: Json
+          site_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_connectors_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company: string | null
