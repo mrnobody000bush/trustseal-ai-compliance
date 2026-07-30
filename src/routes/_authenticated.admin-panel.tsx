@@ -209,9 +209,19 @@ function AdminPanel() {
         </Link>
       </div>
 
-      {isLoading || !data ? (
+      {isLoading ? (
         <div className="mt-10 text-muted-foreground">Loading metrics…</div>
+      ) : statsFailed || !data ? (
+        <div className="mt-10">
+          <QueryErrorState
+            title="Не удалось загрузить метрики"
+            error={statsError}
+            onRetry={() => refetchStats()}
+            showHome={false}
+          />
+        </div>
       ) : (
+
         <>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
