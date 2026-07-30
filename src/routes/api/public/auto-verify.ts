@@ -14,6 +14,25 @@ const cors = (extra: Record<string, string> = {}) => ({
   ...extra,
 });
 
+/** Normalize any domain/url input to a bare lowercase hostname. */
+function toHostname(input?: string | null): string | null {
+  if (!input) return null;
+  let value = input.trim().toLowerCase();
+  if (!value) return null;
+  if (!value.includes("://")) value = `https://${value}`;
+  try {
+    const host = new URL(value).hostname;
+    return host.replace(/^www\./, "") || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Exact host or a subdomain of the registered host. */
+function hostMatches(registered: string, incoming: string): boolean {
+  return incoming === registered || incoming.endsWith(`.${registered}`);
+}
+
 export const Route = createFileRoute("/api/public/auto-verify")({
   server: {
     handlers: {
@@ -52,14 +71,58 @@ export const Route = createFileRoute("/api/public/auto-verify")({
 
         if (!site) return json({ ok: false, error: "invalid_token" }, 404);
 
+        // Trust browser-enforced headers first; fall back to the reported values.
+        const headerHost =
+          toHostname(request.headers.get("origin")) ??
+          toHostname(request.headers.get("referer"));
+        const claimedHost = toHostname(body.domain) ?? toHostname(body.url);
+        const incomingHost = headerHost ?? claimedHost;
+        const registeredHost = toHostname(site.domain);
+
+        if (!registeredHost || !incomingHost || !hostMatches(registeredHost, incomingHost)) {
+          // Log the unauthorized activation attempt for auditing.
+          await supabaseAdmin.from("widget_events").insert({
+            site_id: site.id,
+            event_type: "verification_rejected",
+            meta: {
+              reason: "domain_mismatch",
+              registered_domain: registeredHost,
+              origin_host: headerHost,
+              claimed_host: claimedHost,
+              url: body.url ?? null,
+              at: new Date().toISOString(),
+            },
+          });
+
+          return json(
+            {
+              ok: false,
+              error: "domain_mismatch",
+              message:
+                "This TrustSeal key is registered to a different domain. Verification blocked.",
+            },
+            403,
+          );
+        }
+
+        // Header host and claimed host must agree when both are present.
+        if (headerHost && claimedHost && !hostMatches(registeredHost, claimedHost)) {
+          await supabaseAdmin.from("widget_events").insert({
+            site_id: site.id,
+            event_type: "verification_rejected",
+            meta: { reason: "claim_mismatch", origin_host: headerHost, claimed_host: claimedHost },
+          });
+          return json({ ok: false, error: "domain_mismatch" }, 403);
+        }
+
         const now = new Date().toISOString();
+        const alreadyVerified = site.verification_status === "verified";
         const { error } = await supabaseAdmin
           .from("sites")
           .update({
             verification_status: "verified",
-            verification_method:
-              site.verification_status === "verified" ? undefined : "auto_script",
-            verified_at: site.verification_status === "verified" ? undefined : now,
+            verification_method: alreadyVerified ? undefined : "auto_script",
+            verified_at: alreadyVerified ? undefined : now,
             plugin_last_seen_at: now,
           })
           .eq("id", site.id);
@@ -68,8 +131,8 @@ export const Route = createFileRoute("/api/public/auto-verify")({
 
         await supabaseAdmin.from("widget_events").insert({
           site_id: site.id,
-          event_type: site.verification_status === "verified" ? "widget_load" : "auto_verified",
-          meta: { domain: body.domain ?? null, url: body.url ?? null },
+          event_type: alreadyVerified ? "widget_load" : "auto_verified",
+          meta: { domain: incomingHost, url: body.url ?? null },
         });
 
         return json({ ok: true, status: "verified", site_id: site.id });
