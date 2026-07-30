@@ -77,7 +77,9 @@ export function ConnectorsPanel({
   }
 
   return (
+    <div className="space-y-4">
     <div className="grid gap-4 md:grid-cols-3">
+
 
       {CONNECTORS.map((c) => {
         const active = isOn(c.type);
