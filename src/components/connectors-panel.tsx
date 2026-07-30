@@ -35,7 +35,11 @@ const CONNECTORS: Array<{
   },
 ];
 
-export function ConnectorsPanel({ siteId, onRefresh }: { siteId: string; onRefresh?: () => void }) {
+export function ConnectorsPanel({
+  siteId,
+  token,
+  onRefresh,
+}: { siteId: string; token?: string; onRefresh?: () => void }) {
   const qc = useQueryClient();
   const listFn = useServerFn(listConnectors);
   const toggleFn = useServerFn(toggleConnector);
