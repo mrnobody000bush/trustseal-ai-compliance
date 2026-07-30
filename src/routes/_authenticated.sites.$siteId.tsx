@@ -60,7 +60,7 @@ function SitePage() {
   const { count, limit, increment, reached } = useFreeScanCount();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
-  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["site", siteId],
     queryFn: () => getSiteFn({ data: { siteId } }),
     retry: 1,

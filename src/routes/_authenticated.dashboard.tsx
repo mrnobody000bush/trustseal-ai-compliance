@@ -30,7 +30,6 @@ function DashboardPage() {
     isError,
     error,
     refetch,
-    isFetching,
   } = useQuery({
     queryKey: ["sites"],
     queryFn: () => fetchList(),
