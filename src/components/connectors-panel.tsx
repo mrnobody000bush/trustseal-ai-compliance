@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QueryErrorState } from "@/components/query-error-state";
 import { useServerFn } from "@tanstack/react-start";
 import { Github, Rocket, Boxes, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -39,10 +40,12 @@ export function ConnectorsPanel({ siteId, onRefresh }: { siteId: string; onRefre
   const listFn = useServerFn(listConnectors);
   const toggleFn = useServerFn(toggleConnector);
 
-  const { data: rows } = useQuery({
+  const { data: rows, isError, error, refetch } = useQuery({
     queryKey: ["connectors", siteId],
     queryFn: () => listFn({ data: { siteId } }),
+    retry: 1,
   });
+
 
   const toggle = useMutation({
     mutationFn: (v: { connectorType: ConnectorType; connected: boolean }) =>
@@ -58,8 +61,20 @@ export function ConnectorsPanel({ siteId, onRefresh }: { siteId: string; onRefre
 
   const isOn = (t: ConnectorType) => rows?.find((r) => r.connector_type === t)?.connected ?? false;
 
+  if (isError) {
+    return (
+      <QueryErrorState
+        title="Не удалось загрузить коннекторы"
+        error={error}
+        onRetry={() => refetch()}
+        showHome={false}
+      />
+    );
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-3">
+
       {CONNECTORS.map((c) => {
         const active = isOn(c.type);
         const Icon = c.icon;

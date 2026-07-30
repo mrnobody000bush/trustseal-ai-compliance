@@ -23,6 +23,8 @@ import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
 import { ConnectorsPanel } from "@/components/connectors-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QueryErrorState } from "@/components/query-error-state";
+
 
 import { INDUSTRIES, isHighRisk, type Industry } from "@/lib/industry-rules";
 
@@ -58,10 +60,12 @@ function SitePage() {
   const { count, limit, increment, reached } = useFreeScanCount();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["site", siteId],
     queryFn: () => getSiteFn({ data: { siteId } }),
+    retry: 1,
   });
+
 
   const [industry, setIndustry] = useState<Industry>("ecommerce");
 
@@ -91,7 +95,19 @@ function SitePage() {
   };
 
   const [copied, setCopied] = useState(false);
-  if (isLoading || !data) return <main className="mx-auto max-w-5xl px-6 py-10 text-muted-foreground">Loading…</main>;
+  if (isLoading) return <main className="mx-auto max-w-5xl px-6 py-10 text-muted-foreground">Loading…</main>;
+  if (isError || !data)
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <QueryErrorState
+          title="Не удалось загрузить данные сайта"
+          error={isError ? error : undefined}
+          description={!isError && !data ? "Магазин не найден или был удалён." : undefined}
+          onRetry={() => refetch()}
+        />
+      </main>
+    );
+
 
   const site = data.site;
   const scans = data.scans;

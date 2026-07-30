@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QueryErrorState } from "@/components/query-error-state";
+
 
 import { toast } from "sonner";
 import {
@@ -119,23 +121,50 @@ function AdminPanel() {
     onError: (e: Error) => toast.error(e.message ?? "Impersonation failed"),
   });
 
-  const { data: adminCheck, isLoading: checking } = useQuery({
+  const {
+    data: adminCheck,
+    isLoading: checking,
+    isError: checkFailed,
+    error: checkError,
+    refetch: refetchAdmin,
+  } = useQuery({
     queryKey: ["is-admin"],
     queryFn: () => isAdminFn(),
     staleTime: 60_000,
+    retry: 1,
   });
 
   const isAdmin = adminCheck?.isAdmin;
 
-  const { data, isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError: statsFailed,
+    error: statsError,
+    refetch: refetchStats,
+  } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: () => statsFn(),
     enabled: !!isAdmin,
+    retry: 1,
   });
 
   if (checking) {
     return <main className="mx-auto max-w-6xl px-6 py-10 text-muted-foreground">Loading…</main>;
   }
+
+  if (checkFailed) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <QueryErrorState
+          title="Не удалось проверить права доступа"
+          error={checkError}
+          onRetry={() => refetchAdmin()}
+        />
+      </main>
+    );
+  }
+
 
   if (!isAdmin) {
     return (
@@ -180,9 +209,19 @@ function AdminPanel() {
         </Link>
       </div>
 
-      {isLoading || !data ? (
+      {isLoading ? (
         <div className="mt-10 text-muted-foreground">Loading metrics…</div>
+      ) : statsFailed || !data ? (
+        <div className="mt-10">
+          <QueryErrorState
+            title="Не удалось загрузить метрики"
+            error={statsError}
+            onRetry={() => refetchStats()}
+            showHome={false}
+          />
+        </div>
       ) : (
+
         <>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
