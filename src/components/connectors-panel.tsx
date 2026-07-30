@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { listConnectors, toggleConnector } from "@/lib/connectors.functions";
+import { WidgetSnippet } from "@/components/widget-snippet";
 
 type ConnectorType = "github_replit" | "vercel_netlify" | "wordpress_mcp";
 
