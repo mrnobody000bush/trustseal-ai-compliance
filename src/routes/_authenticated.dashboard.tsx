@@ -22,10 +22,19 @@ function DashboardPage() {
   const fetchList = useServerFn(listSites);
   const createFn = useServerFn(createSite);
   const qc = useQueryClient();
-  const { data: sites = [], isLoading } = useQuery({
+  const {
+    data: sites = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: ["sites"],
     queryFn: () => fetchList(),
+    retry: 1,
   });
+
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ domain: "", name: "", description: "" });
