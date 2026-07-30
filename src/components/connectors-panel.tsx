@@ -39,10 +39,12 @@ export function ConnectorsPanel({ siteId, onRefresh }: { siteId: string; onRefre
   const listFn = useServerFn(listConnectors);
   const toggleFn = useServerFn(toggleConnector);
 
-  const { data: rows } = useQuery({
+  const { data: rows, isError, error, refetch } = useQuery({
     queryKey: ["connectors", siteId],
     queryFn: () => listFn({ data: { siteId } }),
+    retry: 1,
   });
+
 
   const toggle = useMutation({
     mutationFn: (v: { connectorType: ConnectorType; connected: boolean }) =>
