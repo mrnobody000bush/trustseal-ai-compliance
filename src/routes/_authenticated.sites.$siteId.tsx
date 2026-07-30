@@ -24,6 +24,7 @@ import { DomainVerificationCard } from "@/components/domain-verification-card";
 import { ConnectorsPanel } from "@/components/connectors-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QueryErrorState } from "@/components/query-error-state";
+import { buildWidgetSnippet } from "@/components/widget-snippet";
 
 
 import { INDUSTRIES, isHighRisk, type Industry } from "@/lib/industry-rules";
