@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { revokeVerification, verifyMetaTag, forceVerify } from "@/lib/sites.functions";
+import { buildWidgetSnippet } from "@/components/widget-snippet";
 
 type Props = {
   siteId: string;
