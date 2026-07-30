@@ -60,8 +60,20 @@ export function ConnectorsPanel({ siteId, onRefresh }: { siteId: string; onRefre
 
   const isOn = (t: ConnectorType) => rows?.find((r) => r.connector_type === t)?.connected ?? false;
 
+  if (isError) {
+    return (
+      <QueryErrorState
+        title="Не удалось загрузить коннекторы"
+        error={error}
+        onRetry={() => refetch()}
+        showHome={false}
+      />
+    );
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-3">
+
       {CONNECTORS.map((c) => {
         const active = isOn(c.type);
         const Icon = c.icon;
