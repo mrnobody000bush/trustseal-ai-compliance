@@ -187,7 +187,7 @@ function SitePage() {
           />
         </TabsContent>
         <TabsContent value="connectors" className="mt-4">
-          <ConnectorsPanel siteId={site.id} onRefresh={() => { refetch(); }} />
+          <ConnectorsPanel siteId={site.id} token={site.verification_token} onRefresh={() => { refetch(); }} />
         </TabsContent>
       </Tabs>
 
