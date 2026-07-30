@@ -78,7 +78,7 @@ export function DomainVerificationCard({
   });
 
   const metaTag = `<meta name="trustseal-verification" content="${token}">`;
-  const scriptTag = `<script async src="https://project--0ffdbdd8-3f9d-466a-893c-6705cb54b589.lovable.app/embed.js" data-trustseal="${token}"></script>`;
+  const scriptTag = buildWidgetSnippet(token);
   const verified = status === "verified";
 
   const copy = (text: string, key: "tag" | "token" | "script") => {
