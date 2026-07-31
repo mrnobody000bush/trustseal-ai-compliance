@@ -26,6 +26,7 @@ type PlanOption = {
 
 function ChoosePlanPage() {
   const navigate = useNavigate();
+  const setMyPlanFn = useServerFn(setMyPlan);
   const { setPlan } = useAdminMode(false);
   const { reset } = useFreeScanCount();
 
