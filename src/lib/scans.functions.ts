@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { generateText } from "ai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { PLAN_SCAN_LIMITS, PLAN_TIERS, type PlanTier } from "@/lib/plan-tiers";
 import {
   INDUSTRY_VALUES,
   buildIndustryPromptSection,
@@ -13,6 +14,8 @@ const ScanSchema = z.object({
   siteId: z.string().uuid(),
   industry: z.enum(INDUSTRY_VALUES).optional(),
 });
+
+const ScanIdSchema = z.object({ scanId: z.string().uuid() });
 
 const FindingSchema = z.object({
   severity: z
@@ -31,6 +34,9 @@ const ReportSchema = z.object({
   findings: z.array(FindingSchema).default([]),
 });
 
+/** Scans stuck in `running` longer than this are surfaced as failed. */
+const SCAN_TIMEOUT_MS = 4 * 60 * 1000;
+
 function extractJson(text: string): unknown {
   const cleaned = text
     .replace(/^\s*```(?:json)?/i, "")
@@ -46,6 +52,29 @@ function extractJson(text: string): unknown {
   }
 }
 
+/** Turn raw AI Gateway failures into messages a store owner can act on. */
+function friendlyAiError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  const status =
+    (typeof err === "object" && err !== null && "statusCode" in err
+      ? Number((err as { statusCode?: unknown }).statusCode)
+      : undefined) ?? (/\b(429|402|401|403|5\d\d)\b/.exec(msg)?.[1] ? Number(/\b(429|402|401|403|5\d\d)\b/.exec(msg)![1]) : undefined);
+
+  if (status === 429) {
+    return "AI service is rate-limited right now (too many scans at once). Please wait a minute and run the scan again.";
+  }
+  if (status === 402) {
+    return "AI credits for this workspace are exhausted. Top up your Lovable AI credits to continue scanning.";
+  }
+  if (status && status >= 500) {
+    return "The AI service is temporarily unavailable. Please retry the scan in a few moments.";
+  }
+  if (msg.includes("AI returned no JSON object")) {
+    return "The AI returned an unreadable report. Please run the scan again.";
+  }
+  return `Scan failed: ${msg}`;
+}
+
 async function fetchSiteText(url: string): Promise<string> {
   try {
     const res = await fetch(url, {
@@ -54,7 +83,6 @@ async function fetchSiteText(url: string): Promise<string> {
     });
     if (!res.ok) return "";
     const html = await res.text();
-    // Strip tags for the LLM (keep it small)
     const stripped = html
       .replace(/<script[\s\S]*?<\/script>/gi, " ")
       .replace(/<style[\s\S]*?<\/style>/gi, " ")
@@ -67,30 +95,102 @@ async function fetchSiteText(url: string): Promise<string> {
   }
 }
 
-export const runScan = createServerFn({ method: "POST" })
+function startOfTodayIso() {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+/**
+ * Step 1 — enforce the plan quota server-side and create a `running` scan row.
+ * Returns immediately so the UI never waits on the LLM.
+ */
+export const startScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => ScanSchema.parse(i))
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
-
     const { data: site, error: siteErr } = await context.supabase
       .from("sites")
-      .select("id, domain, name")
+      .select("id")
       .eq("id", data.siteId)
       .single();
     if (siteErr || !site) throw new Error("Site not found");
 
-    // create pending scan
-    const industry: Industry = data.industry ?? "ecommerce";
+    // --- server-side quota -------------------------------------------------
+    const [{ data: profile }, { data: adminRow }, { count }] = await Promise.all([
+      context.supabase.from("profiles").select("plan").eq("id", context.userId).maybeSingle(),
+      context.supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", context.userId)
+        .eq("role", "admin")
+        .maybeSingle(),
+      context.supabase
+        .from("compliance_scans")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", context.userId)
+        .gte("created_at", startOfTodayIso()),
+    ]);
 
+    const raw = (profile as { plan?: string } | null)?.plan;
+    const plan: PlanTier = PLAN_TIERS.includes(raw as PlanTier) ? (raw as PlanTier) : "free";
+    const isAdmin = !!adminRow;
+    const limit = PLAN_SCAN_LIMITS[plan];
+    const used = count ?? 0;
+
+    if (!isAdmin && used >= limit) {
+      throw new Error(
+        `PLAN_LIMIT: You've used all ${limit} scans available on the ${plan} plan today. Upgrade to keep scanning.`,
+      );
+    }
+
+    const industry: Industry = data.industry ?? "ecommerce";
     const { data: scanRow, error: scanErr } = await context.supabase
       .from("compliance_scans")
-      .insert({ site_id: site.id, user_id: context.userId, status: "running", industry })
-      .select("*")
+      .insert({ site_id: data.siteId, user_id: context.userId, status: "running", industry })
+      .select("id, status, created_at")
       .single();
     if (scanErr || !scanRow) throw new Error(scanErr?.message ?? "Failed to create scan");
 
+    return { scanId: scanRow.id, plan, used: used + 1, limit: isAdmin ? null : limit };
+  });
+
+/**
+ * Step 2 — do the actual fetch + LLM work for an existing `running` scan.
+ * Called fire-and-forget by the client while it polls `getScan`.
+ */
+export const processScan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => ScanIdSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const apiKey = process.env.LOVABLE_API_KEY;
+
+    const { data: scanRow, error: scanErr } = await context.supabase
+      .from("compliance_scans")
+      .select("id, site_id, status, industry")
+      .eq("id", data.scanId)
+      .single();
+    if (scanErr || !scanRow) throw new Error("Scan not found");
+    if (scanRow.status !== "running") return { ok: true, skipped: true };
+
+    const fail = async (message: string) => {
+      await context.supabase
+        .from("compliance_scans")
+        .update({ status: "failed", error: message })
+        .eq("id", scanRow.id);
+      return { ok: false, error: message };
+    };
+
+    if (!apiKey) return fail("AI is not configured for this project (missing API key).");
+
+    const { data: site } = await context.supabase
+      .from("sites")
+      .select("id, domain, name")
+      .eq("id", scanRow.site_id)
+      .single();
+    if (!site) return fail("Site not found");
+
+    const industry = (scanRow.industry ?? "ecommerce") as Industry;
     const url = site.domain.startsWith("http") ? site.domain : `https://${site.domain}`;
     const pageText = await fetchSiteText(url);
 
@@ -134,16 +234,11 @@ Respond with ONLY a raw JSON object matching this shape, no markdown, no comment
       });
       report = ReportSchema.parse(extractJson(text));
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await context.supabase
-        .from("compliance_scans")
-        .update({ status: "failed", error: msg })
-        .eq("id", scanRow.id);
-      throw new Error(`Scan failed: ${msg}`);
+      return fail(friendlyAiError(err));
     }
 
     const score = Math.max(0, Math.min(100, Math.round(report.score)));
-    const { data: updated, error: upErr } = await context.supabase
+    const { error: upErr } = await context.supabase
       .from("compliance_scans")
       .update({
         status: "completed",
@@ -153,11 +248,37 @@ Respond with ONLY a raw JSON object matching this shape, no markdown, no comment
         findings: report.findings,
         raw_report: report,
       })
-      .eq("id", scanRow.id)
-      .select("*")
+      .eq("id", scanRow.id);
+    if (upErr) return fail(upErr.message);
+
+    return { ok: true, scanId: scanRow.id, score };
+  });
+
+/** Step 3 — polled by the client until the scan leaves the `running` state. */
+export const getScan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => ScanIdSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: scan, error } = await context.supabase
+      .from("compliance_scans")
+      .select("id, status, score, summary, error, created_at")
+      .eq("id", data.scanId)
       .single();
-    if (upErr) throw new Error(upErr.message);
-    return updated;
+    if (error || !scan) throw new Error("Scan not found");
+
+    if (
+      scan.status === "running" &&
+      Date.now() - new Date(scan.created_at).getTime() > SCAN_TIMEOUT_MS
+    ) {
+      const message = "Scan timed out. Please try again.";
+      await context.supabase
+        .from("compliance_scans")
+        .update({ status: "failed", error: message })
+        .eq("id", scan.id);
+      return { ...scan, status: "failed", error: message };
+    }
+
+    return scan;
   });
 
 export const applyAiFix = createServerFn({ method: "POST" })
