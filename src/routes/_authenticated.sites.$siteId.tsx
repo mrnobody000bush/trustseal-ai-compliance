@@ -45,7 +45,9 @@ function SitePage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const getSiteFn = useServerFn(getSite);
-  const runScanFn = useServerFn(runScan);
+  const startScanFn = useServerFn(startScan);
+  const processScanFn = useServerFn(processScan);
+  const getScanFn = useServerFn(getScan);
   const updateFn = useServerFn(updateWidgetConfig);
   const deleteFn = useServerFn(deleteSite);
 
