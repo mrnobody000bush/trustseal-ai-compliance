@@ -82,6 +82,7 @@ function AdminPanel() {
       domain: "Domain",
       owner: "Client",
       scans: "Scans",
+      events: "Widget events",
       avg: "Avg score",
       last: "Last",
       actions: "Actions",
@@ -342,6 +343,7 @@ function AdminPanel() {
                     <th className="px-6 py-3 font-medium">{L.cols.domain}</th>
                     <th className="px-6 py-3 font-medium">{L.cols.owner}</th>
                     <th className="px-6 py-3 text-right font-medium">{L.cols.scans}</th>
+                    <th className="px-6 py-3 text-right font-medium">{L.cols.events}</th>
                     <th className="px-6 py-3 text-right font-medium">{L.cols.avg}</th>
                     <th className="px-6 py-3 font-medium">{L.cols.last}</th>
                     <th className="px-6 py-3 text-right font-medium">{L.cols.actions}</th>
@@ -350,7 +352,7 @@ function AdminPanel() {
                 <tbody>
                   {data.sites.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
+                      <td colSpan={8} className="px-6 py-8 text-center text-muted-foreground">
                         {L.empty}
                       </td>
                     </tr>
@@ -373,6 +375,17 @@ function AdminPanel() {
                           {s.owner_email ?? "—"}
                         </td>
                         <td className="px-6 py-3 text-right tabular-nums">{s.scan_count}</td>
+                        <td className="px-6 py-3 text-right tabular-nums">
+                          <span
+                            className={
+                              (s.event_count ?? 0) > 0
+                                ? "font-semibold text-emerald-500"
+                                : "text-muted-foreground"
+                            }
+                          >
+                            {s.event_count ?? 0}
+                          </span>
+                        </td>
                         <td className="px-6 py-3 text-right tabular-nums">
                           {s.avg_score ?? "—"}
                         </td>

@@ -80,7 +80,7 @@ export const getAdminStats = createServerFn({ method: "GET" })
         .limit(500),
       supabaseAdmin
         .from("widget_events")
-        .select("id,event_type,created_at")
+        .select("id,site_id,event_type,created_at")
         .order("created_at", { ascending: false })
         .limit(2000),
       supabaseAdmin.from("profiles").select("id,email,full_name,created_at"),
@@ -130,9 +130,14 @@ export const getAdminStats = createServerFn({ method: "GET" })
         is_active: s.is_active,
         created_at: s.created_at,
         scan_count: 0,
+        event_count: 0,
         avg_score: null as number | null,
         last_scan: null as string | null,
       });
+    }
+    for (const e of events) {
+      const row = siteMap.get((e as any).site_id);
+      if (row) row.event_count += 1;
     }
     const scoreAgg = new Map<string, { total: number; count: number }>();
     for (const s of scans) {
