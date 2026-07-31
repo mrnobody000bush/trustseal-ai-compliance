@@ -59,7 +59,7 @@ function SitePage() {
     enabled: !!user,
     staleTime: 60_000,
   });
-  const { effectiveAdminMode } = useAdminMode(!!adminData?.isAdmin);
+  
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
 
