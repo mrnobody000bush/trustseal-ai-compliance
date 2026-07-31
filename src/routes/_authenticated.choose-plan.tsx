@@ -64,11 +64,17 @@ function ChoosePlanPage() {
     },
   ];
 
-  const choose = (plan: PlanOption) => {
+  const choose = async (plan: PlanOption) => {
     setPlan(plan.key);
     reset();
     if (typeof window !== "undefined") {
       window.localStorage.setItem("ts-plan-chosen", "1");
+    }
+    try {
+      await setMyPlanFn({ data: { plan: plan.key } });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save your plan");
+      return;
     }
     toast.success(`${plan.name} plan activated`);
     navigate({ to: "/dashboard" });
