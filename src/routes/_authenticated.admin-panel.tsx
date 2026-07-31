@@ -352,7 +352,7 @@ function AdminPanel() {
                 <tbody>
                   {data.sites.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-8 text-center text-muted-foreground">
+                      <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                         {L.empty}
                       </td>
                     </tr>
@@ -362,20 +362,28 @@ function AdminPanel() {
                         key={s.id}
                         className="border-b border-border/60 last:border-0 hover:bg-muted/30"
                       >
-                        <td className="px-6 py-3 font-medium">
-                          {s.name}
-                          {!s.is_active && (
-                            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase text-muted-foreground">
-                              off
-                            </span>
-                          )}
+                        <td className="px-4 py-3 font-medium">
+                          <span className="block truncate" title={s.name}>
+                            {s.name}
+                            {!s.is_active && (
+                              <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase text-muted-foreground">
+                                off
+                              </span>
+                            )}
+                          </span>
                         </td>
-                        <td className="px-6 py-3 text-muted-foreground">{s.domain}</td>
-                        <td className="px-6 py-3 text-muted-foreground">
-                          {s.owner_email ?? "—"}
+                        <td className="max-w-0 px-4 py-3 text-muted-foreground">
+                          <span className="block truncate" title={s.domain}>
+                            {s.domain}
+                          </span>
                         </td>
-                        <td className="px-6 py-3 text-right tabular-nums">{s.scan_count}</td>
-                        <td className="px-6 py-3 text-right tabular-nums">
+                        <td className="max-w-0 px-4 py-3 text-muted-foreground">
+                          <span className="block truncate" title={s.owner_email ?? "—"}>
+                            {s.owner_email ?? "—"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums">{s.scan_count}</td>
+                        <td className="px-4 py-3 text-right tabular-nums">
                           <span
                             className={
                               (s.event_count ?? 0) > 0
@@ -386,17 +394,17 @@ function AdminPanel() {
                             {s.event_count ?? 0}
                           </span>
                         </td>
-                        <td className="px-6 py-3 text-right tabular-nums">
+                        <td className="px-4 py-3 text-right tabular-nums">
                           {s.avg_score ?? "—"}
                         </td>
-                        <td className="px-6 py-3 text-xs text-muted-foreground">
+                        <td className="px-4 py-3 text-xs text-muted-foreground">
                           {s.last_scan
                             ? new Date(s.last_scan).toLocaleDateString(
                                 isRu ? "ru-RU" : "en-US",
                               )
                             : "—"}
                         </td>
-                        <td className="px-6 py-3 text-right">
+                        <td className="px-4 py-3 text-right">
                           <button
                             type="button"
                             onClick={() => {
