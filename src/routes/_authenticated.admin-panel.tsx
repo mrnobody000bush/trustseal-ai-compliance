@@ -336,17 +336,17 @@ function AdminPanel() {
               </h2>
             </div>
             <div className="w-full overflow-x-auto lg:overflow-x-visible">
-              <table className="w-full table-fixed text-sm lg:min-w-0">
+              <table className="w-full min-w-[900px] text-sm lg:min-w-full lg:table-fixed">
                 <thead>
                   <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-                    <th className="px-6 py-3 font-medium">{L.cols.name}</th>
-                    <th className="px-6 py-3 font-medium">{L.cols.domain}</th>
-                    <th className="px-6 py-3 font-medium">{L.cols.owner}</th>
-                    <th className="px-6 py-3 text-right font-medium">{L.cols.scans}</th>
-                    <th className="px-6 py-3 text-right font-medium">{L.cols.events}</th>
-                    <th className="px-6 py-3 text-right font-medium">{L.cols.avg}</th>
-                    <th className="px-6 py-3 font-medium">{L.cols.last}</th>
-                    <th className="px-6 py-3 text-right font-medium">{L.cols.actions}</th>
+                    <th className="px-4 py-3 font-medium lg:w-[18%]">{L.cols.name}</th>
+                    <th className="px-4 py-3 font-medium lg:w-[18%]">{L.cols.domain}</th>
+                    <th className="px-4 py-3 font-medium lg:w-[20%]">{L.cols.owner}</th>
+                    <th className="px-4 py-3 text-right font-medium lg:w-[8%]">{L.cols.scans}</th>
+                    <th className="px-4 py-3 text-right font-medium lg:w-[10%]">{L.cols.events}</th>
+                    <th className="px-4 py-3 text-right font-medium lg:w-[8%]">{L.cols.avg}</th>
+                    <th className="px-4 py-3 font-medium lg:w-[10%]">{L.cols.last}</th>
+                    <th className="px-4 py-3 text-right font-medium lg:w-[8%]">{L.cols.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
