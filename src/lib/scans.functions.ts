@@ -75,24 +75,70 @@ function friendlyAiError(err: unknown): string {
   return `Scan failed: ${msg}`;
 }
 
-async function fetchSiteText(url: string): Promise<string> {
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function fetchHtml(url: string): Promise<string> {
   try {
     const res = await fetch(url, {
       headers: { "User-Agent": "TrustSealBot/1.0 (+https://trustseal.ai)" },
       signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) return "";
-    const html = await res.text();
-    const stripped = html
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    return stripped.slice(0, 12000);
+    return await res.text();
   } catch {
     return "";
   }
+}
+
+/** Pages that carry the compliance signal we audit against. */
+const KEY_PAGE_PATTERNS =
+  /(privacy|policy|terms|conditions|legal|imprint|impressum|cookie|gdpr|ai[-_/]?(policy|disclosure|notice)|about|contact|returns?|refund|shipping)/i;
+
+/** Homepage + up to 4 key legal/policy pages, stripped to text. */
+async function crawlSite(
+  baseUrl: string,
+  maxPages = 5,
+): Promise<Array<{ url: string; text: string }>> {
+  const home = await fetchHtml(baseUrl);
+  const pages: Array<{ url: string; text: string }> = [];
+  const homeText = stripHtml(home);
+  if (homeText) pages.push({ url: baseUrl, text: homeText.slice(0, 6000) });
+  if (!home) return pages;
+
+  const origin = new URL(baseUrl).origin;
+  const candidates = new Set<string>();
+  const hrefRe = /href\s*=\s*["']([^"'#]+)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = hrefRe.exec(home)) !== null) {
+    const raw = m[1];
+    if (!raw || raw.startsWith("mailto:") || raw.startsWith("tel:") || raw.startsWith("javascript:")) continue;
+    let abs: URL;
+    try {
+      abs = new URL(raw, baseUrl);
+    } catch {
+      continue;
+    }
+    if (abs.origin !== origin) continue;
+    abs.hash = "";
+    if (abs.href === baseUrl) continue;
+    if (!KEY_PAGE_PATTERNS.test(abs.pathname)) continue;
+    candidates.add(abs.href);
+    if (candidates.size >= (maxPages - 1) * 2) break;
+  }
+
+  const picked = Array.from(candidates).slice(0, maxPages - 1);
+  const results = await Promise.all(
+    picked.map(async (u) => ({ url: u, text: stripHtml(await fetchHtml(u)).slice(0, 4000) })),
+  );
+  for (const r of results) if (r.text) pages.push(r);
+  return pages;
 }
 
 function startOfTodayIso() {
