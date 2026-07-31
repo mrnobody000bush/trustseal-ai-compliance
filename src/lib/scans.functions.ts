@@ -237,8 +237,12 @@ export const processScan = createServerFn({ method: "POST" })
     if (!site) return fail("Site not found");
 
     const industry = (scanRow.industry ?? "ecommerce") as Industry;
+    const highRisk = isHighRisk(industry);
     const url = site.domain.startsWith("http") ? site.domain : `https://${site.domain}`;
-    const pageText = await fetchSiteText(url);
+    const pages = await crawlSite(url, 5);
+    const pageText = pages
+      .map((p, i) => `--- PAGE ${i + 1}: ${p.url} ---\n${p.text}`)
+      .join("\n\n");
 
     const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
     const gateway = createLovableAiGatewayProvider(apiKey);
@@ -248,10 +252,11 @@ export const processScan = createServerFn({ method: "POST" })
 Analyze the following website and return a compliance report as JSON.
 
 STORE: ${site.name} (${url})
+PAGES CRAWLED: ${pages.length}
 
 ${buildIndustryPromptSection(industry)}
 
-PAGE CONTENT (truncated):
+PAGE CONTENT (homepage + key legal/policy pages, truncated):
 """
 ${pageText || "(could not fetch page content; base your report on the domain name and general expectations for an EU-facing website in this sector)"}
 """
