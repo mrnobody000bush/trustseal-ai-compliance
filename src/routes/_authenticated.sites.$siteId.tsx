@@ -341,8 +341,8 @@ function SitePage() {
       <UpgradeModal
         open={upgradeOpen}
         onOpenChange={setUpgradeOpen}
-        title="Free plan limit reached"
-        description={`You've used all ${limit} free scans. Upgrade to Growth or Scale to keep scanning and unlock AI auto-fix.`}
+        title="Daily scan limit reached"
+        description={upgradeMsg ?? "Upgrade to Growth or Scale to keep scanning and unlock AI auto-fix."}
       />
     </main>
   );
