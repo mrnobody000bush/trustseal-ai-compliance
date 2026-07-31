@@ -57,9 +57,17 @@ function SitePage() {
     enabled: !!user,
     staleTime: 60_000,
   });
-  const { effectiveAdminMode, plan } = useAdminMode(!!adminData?.isAdmin);
-  const { count, limit, increment, reached } = useFreeScanCount();
+  const { effectiveAdminMode } = useAdminMode(!!adminData?.isAdmin);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
+
+  const getPlanFn = useServerFn(getMyPlan);
+  const { data: planInfo, refetch: refetchPlan } = useQuery({
+    queryKey: ["my-plan", user?.id],
+    queryFn: () => getPlanFn(),
+    enabled: !!user,
+    staleTime: 30_000,
+  });
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["site", siteId],
@@ -69,14 +77,48 @@ function SitePage() {
 
 
   const [industry, setIndustry] = useState<Industry>("ecommerce");
+  const [activeScanId, setActiveScanId] = useState<string | null>(null);
+
+  // Poll the running scan instead of blocking the request on the LLM.
+  useQuery({
+    queryKey: ["scan-status", activeScanId],
+    queryFn: async () => {
+      const s = await getScanFn({ data: { scanId: activeScanId! } });
+      if (s.status !== "running") {
+        setActiveScanId(null);
+        qc.invalidateQueries({ queryKey: ["site", siteId] });
+        if (s.status === "completed") toast.success("Scan complete");
+        else toast.error(s.error ?? "Scan failed");
+      }
+      return s;
+    },
+    enabled: !!activeScanId,
+    refetchInterval: 2500,
+    refetchIntervalInBackground: true,
+  });
 
   const scan = useMutation({
-    mutationFn: () => runScanFn({ data: { siteId, industry } }),
-    onSuccess: () => {
-      toast.success("Scan complete");
-      qc.invalidateQueries({ queryKey: ["site", siteId] });
+    mutationFn: async () => {
+      const started = await startScanFn({ data: { siteId, industry } });
+      // Fire-and-forget: the heavy work runs server-side while we poll.
+      void processScanFn({ data: { scanId: started.scanId } }).catch(() => {});
+      return started;
     },
-    onError: (e: Error) => toast.error(e.message),
+    onSuccess: (res) => {
+      setActiveScanId(res.scanId);
+      refetchPlan();
+      qc.invalidateQueries({ queryKey: ["site", siteId] });
+      toast.info("Scan started — running in the background");
+    },
+    onError: (e: Error) => {
+      const msg = e.message ?? "Scan failed";
+      if (msg.startsWith("PLAN_LIMIT:")) {
+        setUpgradeMsg(msg.replace("PLAN_LIMIT:", "").trim());
+        setUpgradeOpen(true);
+        return;
+      }
+      toast.error(msg);
+    },
   });
 
   const del = useMutation({
@@ -84,14 +126,10 @@ function SitePage() {
     onSuccess: () => { toast.success("Deleted"); navigate({ to: "/dashboard" }); },
   });
 
-  const isFreePlan = !effectiveAdminMode && plan === "free";
+  const scanBusy = scan.isPending || !!activeScanId;
 
   const handleScan = () => {
-    if (isFreePlan && reached) {
-      setUpgradeOpen(true);
-      return;
-    }
-    if (isFreePlan) increment();
+    if (scanBusy) return;
     scan.mutate();
   };
 
