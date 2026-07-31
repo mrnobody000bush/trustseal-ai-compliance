@@ -148,9 +148,9 @@ function SitePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleScan} disabled={scan.isPending}>
+            <Button onClick={handleScan} disabled={scanBusy}>
               <Play className="mr-2 h-4 w-4" />
-              {scan.isPending ? "Scanning…" : "Run new scan"}
+              {scanBusy ? "Scanning in background…" : "Run new scan"}
             </Button>
             <Button
               variant="outline"
@@ -161,9 +161,14 @@ function SitePage() {
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-          {isFreePlan && (
+          {scanBusy && (
+            <span className="text-[11px] text-primary">
+              Scan is running on our servers — you can keep browsing, results appear here automatically.
+            </span>
+          )}
+          {planInfo && planInfo.limit !== null && (
             <span className="text-[11px] text-muted-foreground">
-              Free plan · {Math.min(count, limit)}/{limit} scans used
+              {planInfo.plan} plan · {Math.min(planInfo.used, planInfo.limit)}/{planInfo.limit} scans used today
             </span>
           )}
         </div>
