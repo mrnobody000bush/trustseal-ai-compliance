@@ -352,7 +352,7 @@ function AdminPanel() {
                 <tbody>
                   {data.sites.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
+                      <td colSpan={8} className="px-6 py-8 text-center text-muted-foreground">
                         {L.empty}
                       </td>
                     </tr>
@@ -375,6 +375,17 @@ function AdminPanel() {
                           {s.owner_email ?? "—"}
                         </td>
                         <td className="px-6 py-3 text-right tabular-nums">{s.scan_count}</td>
+                        <td className="px-6 py-3 text-right tabular-nums">
+                          <span
+                            className={
+                              (s.event_count ?? 0) > 0
+                                ? "font-semibold text-emerald-500"
+                                : "text-muted-foreground"
+                            }
+                          >
+                            {s.event_count ?? 0}
+                          </span>
+                        </td>
                         <td className="px-6 py-3 text-right tabular-nums">
                           {s.avg_score ?? "—"}
                         </td>
