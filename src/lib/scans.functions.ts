@@ -280,8 +280,10 @@ Respond with ONLY a raw JSON object matching this shape, no markdown, no comment
     let report: z.infer<typeof ReportSchema>;
     try {
       const { text } = await generateText({
-        model: gateway("google/gemini-3-flash-preview"),
+        // High-risk sectors (HR, FinTech, health, …) get the stronger reasoning model.
+        model: gateway(highRisk ? "openai/gpt-5.6-sol" : "google/gemini-3-flash-preview"),
         prompt,
+        ...(highRisk ? { providerOptions: { lovable: { reasoningEffort: "none" } } } : {}),
       });
       report = ReportSchema.parse(extractJson(text));
     } catch (err) {
