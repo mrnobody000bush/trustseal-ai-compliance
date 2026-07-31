@@ -193,7 +193,7 @@ function AdminPanel() {
     }).format(n);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="w-full px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary">
@@ -335,8 +335,8 @@ function AdminPanel() {
                 {L.allSites}
               </h2>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="w-full overflow-x-auto lg:overflow-x-visible">
+              <table className="w-full table-fixed text-sm lg:min-w-0">
                 <thead>
                   <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
                     <th className="px-6 py-3 font-medium">{L.cols.name}</th>
