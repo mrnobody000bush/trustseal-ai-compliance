@@ -1,11 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+/** In-memory 60s cache: repeated widget hits never touch the DB. */
+const CACHE_TTL_MS = 60_000;
+const cache = new Map<string, { at: number; body: string }>();
+
 export const Route = createFileRoute("/api/public/widget/$siteId")({
   server: {
     handlers: {
       GET: async ({ params }) => {
+        const cached = cache.get(params.siteId);
+        if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
+          return new Response(cached.body, {
+            headers: cors({
+              "content-type": "application/json",
+              "cache-control": "public, max-age=60, s-maxage=60",
+              "x-trustseal-cache": "hit",
+            }),
+          });
+        }
+
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const supabase = supabaseAdmin;
+
 
         // Accept the verification token (canonical) or the legacy site id.
         const key = params.siteId;
