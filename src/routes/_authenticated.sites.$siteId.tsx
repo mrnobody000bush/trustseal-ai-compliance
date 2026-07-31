@@ -12,12 +12,11 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { getSite, updateWidgetConfig, deleteSite } from "@/lib/sites.functions";
-import { runScan } from "@/lib/scans.functions";
+import { startScan, processScan, getScan } from "@/lib/scans.functions";
+import { getMyPlan } from "@/lib/plan.functions";
 import { FixWithAIButton } from "@/components/fix-with-ai-button";
 import { CompliancePatchReport } from "@/components/compliance-patch-report";
 import { UpgradeModal } from "@/components/upgrade-modal";
-import { useAdminMode } from "@/lib/admin-mode";
-import { useFreeScanCount } from "@/lib/plan-limits";
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
@@ -45,7 +44,9 @@ function SitePage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const getSiteFn = useServerFn(getSite);
-  const runScanFn = useServerFn(runScan);
+  const startScanFn = useServerFn(startScan);
+  const processScanFn = useServerFn(processScan);
+  const getScanFn = useServerFn(getScan);
   const updateFn = useServerFn(updateWidgetConfig);
   const deleteFn = useServerFn(deleteSite);
 
@@ -57,9 +58,17 @@ function SitePage() {
     enabled: !!user,
     staleTime: 60_000,
   });
-  const { effectiveAdminMode, plan } = useAdminMode(!!adminData?.isAdmin);
-  const { count, limit, increment, reached } = useFreeScanCount();
+  
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
+
+  const getPlanFn = useServerFn(getMyPlan);
+  const { data: planInfo, refetch: refetchPlan } = useQuery({
+    queryKey: ["my-plan", user?.id],
+    queryFn: () => getPlanFn(),
+    enabled: !!user,
+    staleTime: 30_000,
+  });
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["site", siteId],
@@ -69,14 +78,48 @@ function SitePage() {
 
 
   const [industry, setIndustry] = useState<Industry>("ecommerce");
+  const [activeScanId, setActiveScanId] = useState<string | null>(null);
+
+  // Poll the running scan instead of blocking the request on the LLM.
+  useQuery({
+    queryKey: ["scan-status", activeScanId],
+    queryFn: async () => {
+      const s = await getScanFn({ data: { scanId: activeScanId! } });
+      if (s.status !== "running") {
+        setActiveScanId(null);
+        qc.invalidateQueries({ queryKey: ["site", siteId] });
+        if (s.status === "completed") toast.success("Scan complete");
+        else toast.error(s.error ?? "Scan failed");
+      }
+      return s;
+    },
+    enabled: !!activeScanId,
+    refetchInterval: 2500,
+    refetchIntervalInBackground: true,
+  });
 
   const scan = useMutation({
-    mutationFn: () => runScanFn({ data: { siteId, industry } }),
-    onSuccess: () => {
-      toast.success("Scan complete");
-      qc.invalidateQueries({ queryKey: ["site", siteId] });
+    mutationFn: async () => {
+      const started = await startScanFn({ data: { siteId, industry } });
+      // Fire-and-forget: the heavy work runs server-side while we poll.
+      void processScanFn({ data: { scanId: started.scanId } }).catch(() => {});
+      return started;
     },
-    onError: (e: Error) => toast.error(e.message),
+    onSuccess: (res) => {
+      setActiveScanId(res.scanId);
+      refetchPlan();
+      qc.invalidateQueries({ queryKey: ["site", siteId] });
+      toast.info("Scan started — running in the background");
+    },
+    onError: (e: Error) => {
+      const msg = e.message ?? "Scan failed";
+      if (msg.startsWith("PLAN_LIMIT:")) {
+        setUpgradeMsg(msg.replace("PLAN_LIMIT:", "").trim());
+        setUpgradeOpen(true);
+        return;
+      }
+      toast.error(msg);
+    },
   });
 
   const del = useMutation({
@@ -84,14 +127,10 @@ function SitePage() {
     onSuccess: () => { toast.success("Deleted"); navigate({ to: "/dashboard" }); },
   });
 
-  const isFreePlan = !effectiveAdminMode && plan === "free";
+  const scanBusy = scan.isPending || !!activeScanId;
 
   const handleScan = () => {
-    if (isFreePlan && reached) {
-      setUpgradeOpen(true);
-      return;
-    }
-    if (isFreePlan) increment();
+    if (scanBusy) return;
     scan.mutate();
   };
 
@@ -148,9 +187,9 @@ function SitePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleScan} disabled={scan.isPending}>
+            <Button onClick={handleScan} disabled={scanBusy}>
               <Play className="mr-2 h-4 w-4" />
-              {scan.isPending ? "Scanning…" : "Run new scan"}
+              {scanBusy ? "Scanning in background…" : "Run new scan"}
             </Button>
             <Button
               variant="outline"
@@ -161,9 +200,14 @@ function SitePage() {
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-          {isFreePlan && (
+          {scanBusy && (
+            <span className="text-[11px] text-primary">
+              Scan is running on our servers — you can keep browsing, results appear here automatically.
+            </span>
+          )}
+          {planInfo && planInfo.limit !== null && (
             <span className="text-[11px] text-muted-foreground">
-              Free plan · {Math.min(count, limit)}/{limit} scans used
+              {planInfo.plan} plan · {Math.min(planInfo.used, planInfo.limit)}/{planInfo.limit} scans used today
             </span>
           )}
         </div>
@@ -298,8 +342,8 @@ function SitePage() {
       <UpgradeModal
         open={upgradeOpen}
         onOpenChange={setUpgradeOpen}
-        title="Free plan limit reached"
-        description={`You've used all ${limit} free scans. Upgrade to Growth or Scale to keep scanning and unlock AI auto-fix.`}
+        title="Daily scan limit reached"
+        description={upgradeMsg ?? "Upgrade to Growth or Scale to keep scanning and unlock AI auto-fix."}
       />
     </main>
   );
