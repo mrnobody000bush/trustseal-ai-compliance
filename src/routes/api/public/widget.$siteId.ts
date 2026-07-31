@@ -51,18 +51,26 @@ export const Route = createFileRoute("/api/public/widget/$siteId")({
           .limit(1);
 
         const latest = scans?.[0];
-        return new Response(
-          JSON.stringify({
-            id: site.id,
-            name: site.name,
-            domain: site.domain,
-            widget_config: site.widget_config,
-            score: latest?.score ?? null,
-            summary: latest?.summary ?? null,
-            scanned_at: latest?.created_at ?? null,
+        const body = JSON.stringify({
+          id: site.id,
+          name: site.name,
+          domain: site.domain,
+          widget_config: site.widget_config,
+          score: latest?.score ?? null,
+          summary: latest?.summary ?? null,
+          scanned_at: latest?.created_at ?? null,
+        });
+
+        if (cache.size > 5000) cache.clear();
+        cache.set(params.siteId, { at: Date.now(), body });
+
+        return new Response(body, {
+          headers: cors({
+            "content-type": "application/json",
+            "cache-control": "public, max-age=60, s-maxage=60",
+            "x-trustseal-cache": "miss",
           }),
-          { headers: cors({ "content-type": "application/json", "cache-control": "public, max-age=60" }) },
-        );
+        });
       },
       OPTIONS: async () => new Response(null, { status: 204, headers: cors() }),
     },
