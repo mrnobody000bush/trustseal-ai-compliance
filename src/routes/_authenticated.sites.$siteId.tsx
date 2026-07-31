@@ -17,7 +17,6 @@ import { getMyPlan } from "@/lib/plan.functions";
 import { FixWithAIButton } from "@/components/fix-with-ai-button";
 import { CompliancePatchReport } from "@/components/compliance-patch-report";
 import { UpgradeModal } from "@/components/upgrade-modal";
-import { useAdminMode } from "@/lib/admin-mode";
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
