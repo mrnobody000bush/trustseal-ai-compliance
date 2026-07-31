@@ -75,24 +75,70 @@ function friendlyAiError(err: unknown): string {
   return `Scan failed: ${msg}`;
 }
 
-async function fetchSiteText(url: string): Promise<string> {
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function fetchHtml(url: string): Promise<string> {
   try {
     const res = await fetch(url, {
       headers: { "User-Agent": "TrustSealBot/1.0 (+https://trustseal.ai)" },
       signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) return "";
-    const html = await res.text();
-    const stripped = html
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    return stripped.slice(0, 12000);
+    return await res.text();
   } catch {
     return "";
   }
+}
+
+/** Pages that carry the compliance signal we audit against. */
+const KEY_PAGE_PATTERNS =
+  /(privacy|policy|terms|conditions|legal|imprint|impressum|cookie|gdpr|ai[-_/]?(policy|disclosure|notice)|about|contact|returns?|refund|shipping)/i;
+
+/** Homepage + up to 4 key legal/policy pages, stripped to text. */
+async function crawlSite(
+  baseUrl: string,
+  maxPages = 5,
+): Promise<Array<{ url: string; text: string }>> {
+  const home = await fetchHtml(baseUrl);
+  const pages: Array<{ url: string; text: string }> = [];
+  const homeText = stripHtml(home);
+  if (homeText) pages.push({ url: baseUrl, text: homeText.slice(0, 6000) });
+  if (!home) return pages;
+
+  const origin = new URL(baseUrl).origin;
+  const candidates = new Set<string>();
+  const hrefRe = /href\s*=\s*["']([^"'#]+)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = hrefRe.exec(home)) !== null) {
+    const raw = m[1];
+    if (!raw || raw.startsWith("mailto:") || raw.startsWith("tel:") || raw.startsWith("javascript:")) continue;
+    let abs: URL;
+    try {
+      abs = new URL(raw, baseUrl);
+    } catch {
+      continue;
+    }
+    if (abs.origin !== origin) continue;
+    abs.hash = "";
+    if (abs.href === baseUrl) continue;
+    if (!KEY_PAGE_PATTERNS.test(abs.pathname)) continue;
+    candidates.add(abs.href);
+    if (candidates.size >= (maxPages - 1) * 2) break;
+  }
+
+  const picked = Array.from(candidates).slice(0, maxPages - 1);
+  const results = await Promise.all(
+    picked.map(async (u) => ({ url: u, text: stripHtml(await fetchHtml(u)).slice(0, 4000) })),
+  );
+  for (const r of results) if (r.text) pages.push(r);
+  return pages;
 }
 
 function startOfTodayIso() {
@@ -191,8 +237,12 @@ export const processScan = createServerFn({ method: "POST" })
     if (!site) return fail("Site not found");
 
     const industry = (scanRow.industry ?? "ecommerce") as Industry;
+    const highRisk = isHighRisk(industry);
     const url = site.domain.startsWith("http") ? site.domain : `https://${site.domain}`;
-    const pageText = await fetchSiteText(url);
+    const pages = await crawlSite(url, 5);
+    const pageText = pages
+      .map((p, i) => `--- PAGE ${i + 1}: ${p.url} ---\n${p.text}`)
+      .join("\n\n");
 
     const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
     const gateway = createLovableAiGatewayProvider(apiKey);
@@ -202,10 +252,11 @@ export const processScan = createServerFn({ method: "POST" })
 Analyze the following website and return a compliance report as JSON.
 
 STORE: ${site.name} (${url})
+PAGES CRAWLED: ${pages.length}
 
 ${buildIndustryPromptSection(industry)}
 
-PAGE CONTENT (truncated):
+PAGE CONTENT (homepage + key legal/policy pages, truncated):
 """
 ${pageText || "(could not fetch page content; base your report on the domain name and general expectations for an EU-facing website in this sector)"}
 """
@@ -229,8 +280,10 @@ Respond with ONLY a raw JSON object matching this shape, no markdown, no comment
     let report: z.infer<typeof ReportSchema>;
     try {
       const { text } = await generateText({
-        model: gateway("google/gemini-3-flash-preview"),
+        // High-risk sectors (HR, FinTech, health, …) get the stronger reasoning model.
+        model: gateway(highRisk ? "openai/gpt-5.6-sol" : "google/gemini-3-flash-preview"),
         prompt,
+        ...(highRisk ? { providerOptions: { lovable: { reasoningEffort: "none" } } } : {}),
       });
       report = ReportSchema.parse(extractJson(text));
     } catch (err) {
