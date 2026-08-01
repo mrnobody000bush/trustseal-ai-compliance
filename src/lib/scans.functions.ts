@@ -1,14 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { generateText } from "ai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { PLAN_SCAN_LIMITS, PLAN_TIERS, type PlanTier } from "@/lib/plan-tiers";
-import {
-  INDUSTRY_VALUES,
-  buildIndustryPromptSection,
-  isHighRisk,
-  type Industry,
-} from "@/lib/industry-rules";
+import { INDUSTRY_VALUES, type Industry } from "@/lib/industry-rules";
 
 const ScanSchema = z.object({
   siteId: z.string().uuid(),
@@ -17,129 +11,9 @@ const ScanSchema = z.object({
 
 const ScanIdSchema = z.object({ scanId: z.string().uuid() });
 
-const FindingSchema = z.object({
-  severity: z
-    .string()
-    .transform((s) => s.toLowerCase())
-    .pipe(z.enum(["low", "medium", "high", "critical"]).catch("medium")),
-  category: z.string().default("General"),
-  title: z.string().default("Finding"),
-  description: z.string().default(""),
-  recommendation: z.string().default(""),
-});
-
-const ReportSchema = z.object({
-  score: z.coerce.number().default(0),
-  summary: z.string().default(""),
-  findings: z.array(FindingSchema).default([]),
-});
-
 /** Scans stuck in `running` longer than this are surfaced as failed. */
 const SCAN_TIMEOUT_MS = 4 * 60 * 1000;
 
-function extractJson(text: string): unknown {
-  const cleaned = text
-    .replace(/^\s*```(?:json)?/i, "")
-    .replace(/```\s*$/, "")
-    .trim();
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
-    if (start === -1 || end <= start) throw new Error("AI returned no JSON object");
-    return JSON.parse(cleaned.slice(start, end + 1));
-  }
-}
-
-/** Turn raw AI Gateway failures into messages a store owner can act on. */
-function friendlyAiError(err: unknown): string {
-  const msg = err instanceof Error ? err.message : String(err);
-  const status =
-    (typeof err === "object" && err !== null && "statusCode" in err
-      ? Number((err as { statusCode?: unknown }).statusCode)
-      : undefined) ?? (/\b(429|402|401|403|5\d\d)\b/.exec(msg)?.[1] ? Number(/\b(429|402|401|403|5\d\d)\b/.exec(msg)![1]) : undefined);
-
-  if (status === 429) {
-    return "AI service is rate-limited right now (too many scans at once). Please wait a minute and run the scan again.";
-  }
-  if (status === 402) {
-    return "AI credits for this workspace are exhausted. Top up your Lovable AI credits to continue scanning.";
-  }
-  if (status && status >= 500) {
-    return "The AI service is temporarily unavailable. Please retry the scan in a few moments.";
-  }
-  if (msg.includes("AI returned no JSON object")) {
-    return "The AI returned an unreadable report. Please run the scan again.";
-  }
-  return `Scan failed: ${msg}`;
-}
-
-function stripHtml(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-async function fetchHtml(url: string): Promise<string> {
-  try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "TrustSealBot/1.0 (+https://trustseal.ai)" },
-      signal: AbortSignal.timeout(15000),
-    });
-    if (!res.ok) return "";
-    return await res.text();
-  } catch {
-    return "";
-  }
-}
-
-/** Pages that carry the compliance signal we audit against. */
-const KEY_PAGE_PATTERNS =
-  /(privacy|policy|terms|conditions|legal|imprint|impressum|cookie|gdpr|ai[-_/]?(policy|disclosure|notice)|about|contact|returns?|refund|shipping)/i;
-
-/** Homepage + up to 4 key legal/policy pages, stripped to text. */
-async function crawlSite(
-  baseUrl: string,
-  maxPages = 5,
-): Promise<Array<{ url: string; text: string }>> {
-  const home = await fetchHtml(baseUrl);
-  const pages: Array<{ url: string; text: string }> = [];
-  const homeText = stripHtml(home);
-  if (homeText) pages.push({ url: baseUrl, text: homeText.slice(0, 6000) });
-  if (!home) return pages;
-
-  const origin = new URL(baseUrl).origin;
-  const candidates = new Set<string>();
-  const hrefRe = /href\s*=\s*["']([^"'#]+)["']/gi;
-  let m: RegExpExecArray | null;
-  while ((m = hrefRe.exec(home)) !== null) {
-    const raw = m[1];
-    if (!raw || raw.startsWith("mailto:") || raw.startsWith("tel:") || raw.startsWith("javascript:")) continue;
-    let abs: URL;
-    try {
-      abs = new URL(raw, baseUrl);
-    } catch {
-      continue;
-    }
-    if (abs.origin !== origin) continue;
-    abs.hash = "";
-    if (abs.href === baseUrl) continue;
-    if (!KEY_PAGE_PATTERNS.test(abs.pathname)) continue;
-    candidates.add(abs.href);
-    if (candidates.size >= (maxPages - 1) * 2) break;
-  }
-
-  const picked = Array.from(candidates).slice(0, maxPages - 1);
-  const results = await Promise.all(
-    picked.map(async (u) => ({ url: u, text: stripHtml(await fetchHtml(u)).slice(0, 4000) })),
-  );
-  for (const r of results) if (r.text) pages.push(r);
-  return pages;
-}
 
 function startOfTodayIso() {
   const d = new Date();
