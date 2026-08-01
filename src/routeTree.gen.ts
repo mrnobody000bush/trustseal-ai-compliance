@@ -23,6 +23,7 @@ import { Route as ApiPublicPluginVerifyRouteImport } from './routes/api/public/p
 import { Route as ApiPublicAutoVerifyRouteImport } from './routes/api/public/auto-verify'
 import { Route as AuthenticatedSitesSiteIdRouteImport } from './routes/_authenticated.sites.$siteId'
 import { Route as ApiPublicWidgetSiteIdRouteImport } from './routes/api/public/widget.$siteId'
+import { Route as ApiPublicCronWeeklyRescanRouteImport } from './routes/api/public/cron/weekly-rescan'
 
 const WidgetDemoRoute = WidgetDemoRouteImport.update({
   id: '/widget-demo',
@@ -94,6 +95,12 @@ const ApiPublicWidgetSiteIdRoute = ApiPublicWidgetSiteIdRouteImport.update({
   path: '/api/public/widget/$siteId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronWeeklyRescanRoute =
+  ApiPublicCronWeeklyRescanRouteImport.update({
+    id: '/api/public/cron/weekly-rescan',
+    path: '/api/public/cron/weekly-rescan',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
+  '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
   '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
 }
 export interface FileRoutesByTo {
@@ -123,6 +131,7 @@ export interface FileRoutesByTo {
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
+  '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
   '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
 }
 export interface FileRoutesById {
@@ -140,6 +149,7 @@ export interface FileRoutesById {
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
+  '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
   '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
 }
 export interface FileRouteTypes {
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
     | '/api/public/widget-event'
+    | '/api/public/cron/weekly-rescan'
     | '/api/public/widget/$siteId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
     | '/api/public/widget-event'
+    | '/api/public/cron/weekly-rescan'
     | '/api/public/widget/$siteId'
   id:
     | '__root__'
@@ -188,6 +200,7 @@ export interface FileRouteTypes {
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
     | '/api/public/widget-event'
+    | '/api/public/cron/weekly-rescan'
     | '/api/public/widget/$siteId'
   fileRoutesById: FileRoutesById
 }
@@ -201,6 +214,7 @@ export interface RootRouteChildren {
   ApiPublicAutoVerifyRoute: typeof ApiPublicAutoVerifyRoute
   ApiPublicPluginVerifyRoute: typeof ApiPublicPluginVerifyRoute
   ApiPublicWidgetEventRoute: typeof ApiPublicWidgetEventRoute
+  ApiPublicCronWeeklyRescanRoute: typeof ApiPublicCronWeeklyRescanRoute
   ApiPublicWidgetSiteIdRoute: typeof ApiPublicWidgetSiteIdRoute
 }
 
@@ -304,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWidgetSiteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/weekly-rescan': {
+      id: '/api/public/cron/weekly-rescan'
+      path: '/api/public/cron/weekly-rescan'
+      fullPath: '/api/public/cron/weekly-rescan'
+      preLoaderRoute: typeof ApiPublicCronWeeklyRescanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -335,6 +356,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAutoVerifyRoute: ApiPublicAutoVerifyRoute,
   ApiPublicPluginVerifyRoute: ApiPublicPluginVerifyRoute,
   ApiPublicWidgetEventRoute: ApiPublicWidgetEventRoute,
+  ApiPublicCronWeeklyRescanRoute: ApiPublicCronWeeklyRescanRoute,
   ApiPublicWidgetSiteIdRoute: ApiPublicWidgetSiteIdRoute,
 }
 export const routeTree = rootRouteImport
