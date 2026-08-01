@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-const Body = z.object({
-  site_id: z.string().uuid(),
-  event_type: z.string().min(1).max(50),
-  meta: z.record(z.string(), z.any()).optional(),
-});
+const Body = z
+  .object({
+    site_id: z.string().uuid().optional(),
+    token: z.string().min(8).max(64).optional(),
+    event_type: z.string().min(1).max(50),
+    meta: z.record(z.string(), z.any()).optional(),
+  })
+  .refine((b) => !!b.site_id || !!b.token, { message: "site_id or token required" });
 
 const cors = (extra: Record<string, string> = {}) => ({
   "access-control-allow-origin": "*",
@@ -22,13 +25,15 @@ export const Route = createFileRoute("/api/public/widget-event")({
         try {
           const body = Body.parse(await request.json());
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data: site } = await supabaseAdmin
+          const query = supabaseAdmin
             .from("sites")
             .select("id")
-            .eq("id", body.site_id)
             .eq("is_active", true)
-          .eq("verification_status", "verified")
-            .maybeSingle();
+            .eq("verification_status", "verified");
+          const { data: site } = await (body.site_id
+            ? query.eq("id", body.site_id)
+            : query.eq("verification_token", body.token!)
+          ).maybeSingle();
           if (!site) {
             return new Response(JSON.stringify({ ok: false }), {
               status: 404,
@@ -36,7 +41,7 @@ export const Route = createFileRoute("/api/public/widget-event")({
             });
           }
           await supabaseAdmin.from("widget_events").insert({
-            site_id: body.site_id,
+            site_id: site.id,
             event_type: body.event_type,
             meta: body.meta ?? {},
           });

@@ -87,10 +87,24 @@
 
     var badge = root.getElementById("b");
     var panel = root.getElementById("p");
+    track("widget_impression");
     badge.addEventListener("click", function () {
       panel.classList.toggle("open");
+      if (panel.classList.contains("open")) track("widget_click");
     });
   }
+
+  function track(type) {
+    try {
+      fetch(apiBase + "/api/public/widget-event", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: token, event_type: type, meta: { url: window.location.href } }),
+        keepalive: true
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
 
   function start() {
     fetch(apiBase + "/api/public/widget/" + encodeURIComponent(token))

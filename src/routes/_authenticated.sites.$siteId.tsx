@@ -21,6 +21,8 @@ import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
 import { ConnectorsPanel } from "@/components/connectors-panel";
+import { WidgetAnalyticsPanel } from "@/components/widget-analytics-panel";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QueryErrorState } from "@/components/query-error-state";
 import { buildWidgetSnippet } from "@/components/widget-snippet";
@@ -216,6 +218,7 @@ function SitePage() {
       <Tabs defaultValue="verification" className="mt-6">
         <TabsList>
           <TabsTrigger value="verification">Domain ownership</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="connectors">Connectors &amp; MCP</TabsTrigger>
         </TabsList>
         <TabsContent value="verification">
@@ -230,10 +233,14 @@ function SitePage() {
             onRefresh={() => { refetch(); }}
           />
         </TabsContent>
+        <TabsContent value="analytics" className="mt-4">
+          <WidgetAnalyticsPanel siteId={site.id} verified={isVerified} />
+        </TabsContent>
         <TabsContent value="connectors" className="mt-4">
           <ConnectorsPanel siteId={site.id} token={site.verification_token} onRefresh={() => { refetch(); }} />
         </TabsContent>
       </Tabs>
+
 
 
       {latest && (
