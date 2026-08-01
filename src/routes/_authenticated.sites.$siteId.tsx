@@ -21,6 +21,8 @@ import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
 import { ConnectorsPanel } from "@/components/connectors-panel";
+import { WidgetAnalyticsPanel } from "@/components/widget-analytics-panel";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QueryErrorState } from "@/components/query-error-state";
 import { buildWidgetSnippet } from "@/components/widget-snippet";
