@@ -216,6 +216,7 @@ function SitePage() {
       <Tabs defaultValue="verification" className="mt-6">
         <TabsList>
           <TabsTrigger value="verification">Domain ownership</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="connectors">Connectors &amp; MCP</TabsTrigger>
         </TabsList>
         <TabsContent value="verification">
@@ -230,10 +231,14 @@ function SitePage() {
             onRefresh={() => { refetch(); }}
           />
         </TabsContent>
+        <TabsContent value="analytics" className="mt-4">
+          <WidgetAnalyticsPanel siteId={site.id} verified={isVerified} />
+        </TabsContent>
         <TabsContent value="connectors" className="mt-4">
           <ConnectorsPanel siteId={site.id} token={site.verification_token} onRefresh={() => { refetch(); }} />
         </TabsContent>
       </Tabs>
+
 
 
       {latest && (
