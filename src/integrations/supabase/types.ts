@@ -26,6 +26,7 @@ export type Database = {
           site_id: string
           status: string
           summary: string | null
+          trigger_source: string
           user_id: string
         }
         Insert: {
@@ -39,6 +40,7 @@ export type Database = {
           site_id: string
           status?: string
           summary?: string | null
+          trigger_source?: string
           user_id: string
         }
         Update: {
@@ -52,6 +54,7 @@ export type Database = {
           site_id?: string
           status?: string
           summary?: string | null
+          trigger_source?: string
           user_id?: string
         }
         Relationships: [
@@ -142,6 +145,8 @@ export type Database = {
           domain: string
           id: string
           is_active: boolean
+          last_auto_scan_at: string | null
+          monitoring_enabled: boolean
           name: string
           plugin_last_seen_at: string | null
           updated_at: string
@@ -158,6 +163,8 @@ export type Database = {
           domain: string
           id?: string
           is_active?: boolean
+          last_auto_scan_at?: string | null
+          monitoring_enabled?: boolean
           name: string
           plugin_last_seen_at?: string | null
           updated_at?: string
@@ -174,6 +181,8 @@ export type Database = {
           domain?: string
           id?: string
           is_active?: boolean
+          last_auto_scan_at?: string | null
+          monitoring_enabled?: boolean
           name?: string
           plugin_last_seen_at?: string | null
           updated_at?: string
