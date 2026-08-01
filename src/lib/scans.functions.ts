@@ -209,103 +209,10 @@ export const processScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => ScanIdSchema.parse(i))
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-
-    const { data: scanRow, error: scanErr } = await context.supabase
-      .from("compliance_scans")
-      .select("id, site_id, status, industry")
-      .eq("id", data.scanId)
-      .single();
-    if (scanErr || !scanRow) throw new Error("Scan not found");
-    if (scanRow.status !== "running") return { ok: true, skipped: true };
-
-    const fail = async (message: string) => {
-      await context.supabase
-        .from("compliance_scans")
-        .update({ status: "failed", error: message })
-        .eq("id", scanRow.id);
-      return { ok: false, error: message };
-    };
-
-    if (!apiKey) return fail("AI is not configured for this project (missing API key).");
-
-    const { data: site } = await context.supabase
-      .from("sites")
-      .select("id, domain, name")
-      .eq("id", scanRow.site_id)
-      .single();
-    if (!site) return fail("Site not found");
-
-    const industry = (scanRow.industry ?? "ecommerce") as Industry;
-    const highRisk = isHighRisk(industry);
-    const url = site.domain.startsWith("http") ? site.domain : `https://${site.domain}`;
-    const pages = await crawlSite(url, 5);
-    const pageText = pages
-      .map((p, i) => `--- PAGE ${i + 1}: ${p.url} ---\n${p.text}`)
-      .join("\n\n");
-
-    const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
-    const gateway = createLovableAiGatewayProvider(apiKey);
-
-    const prompt = `You are an EU AI Act (Regulation 2024/1689) compliance auditor. The core AI Act obligations for transparency and high-risk uses take effect in August 2026.
-
-Analyze the following website and return a compliance report as JSON.
-
-STORE: ${site.name} (${url})
-PAGES CRAWLED: ${pages.length}
-
-${buildIndustryPromptSection(industry)}
-
-PAGE CONTENT (homepage + key legal/policy pages, truncated):
-"""
-${pageText || "(could not fetch page content; base your report on the domain name and general expectations for an EU-facing website in this sector)"}
-"""
-
-Return:
-- score: integer 0-100 (100 = fully compliant)
-- summary: one-paragraph plain-language summary that names the sector and its regulatory regime
-- findings: array of objects with severity ("low"|"medium"|"high"|"critical"), category, title, description, recommendation
-
-Evaluate strictly against the sector-specific criteria above and apply the stated scoring policy.${
-      isHighRisk(industry)
-        ? " This is a HIGH-RISK sector: prioritise personal-data protection (GDPR) and automated-decision safeguards in your findings."
-        : ""
-    }
-
-Be specific and actionable. Return ${isHighRisk(industry) ? "6–10" : "4–8"} findings.
-
-Respond with ONLY a raw JSON object matching this shape, no markdown, no commentary:
-{"score":0,"summary":"","findings":[{"severity":"low","category":"","title":"","description":"","recommendation":""}]}`;
-
-    let report: z.infer<typeof ReportSchema>;
-    try {
-      const { text } = await generateText({
-        // High-risk sectors (HR, FinTech, health, …) get the stronger reasoning model.
-        model: gateway(highRisk ? "openai/gpt-5.6-sol" : "google/gemini-3-flash-preview"),
-        prompt,
-        ...(highRisk ? { providerOptions: { lovable: { reasoningEffort: "none" } } } : {}),
-      });
-      report = ReportSchema.parse(extractJson(text));
-    } catch (err) {
-      return fail(friendlyAiError(err));
-    }
-
-    const score = Math.max(0, Math.min(100, Math.round(report.score)));
-    const { error: upErr } = await context.supabase
-      .from("compliance_scans")
-      .update({
-        status: "completed",
-        score,
-        summary: report.summary,
-        industry,
-        findings: report.findings,
-        raw_report: report,
-      })
-      .eq("id", scanRow.id);
-    if (upErr) return fail(upErr.message);
-
-    return { ok: true, scanId: scanRow.id, score };
+    const { executeScan } = await import("@/lib/scan-engine.server");
+    return executeScan(context.supabase, data.scanId);
   });
+
 
 /** Step 3 — polled by the client until the scan leaves the `running` state. */
 export const getScan = createServerFn({ method: "POST" })
