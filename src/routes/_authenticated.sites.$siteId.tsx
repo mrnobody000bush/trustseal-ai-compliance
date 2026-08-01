@@ -22,6 +22,7 @@ import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
 import { ConnectorsPanel } from "@/components/connectors-panel";
 import { WidgetAnalyticsPanel } from "@/components/widget-analytics-panel";
+import { MonitoringCard } from "@/components/monitoring-card";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QueryErrorState } from "@/components/query-error-state";
