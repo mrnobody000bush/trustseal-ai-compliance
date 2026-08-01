@@ -38,7 +38,7 @@ export function MonitoringCard({ siteId, verified }: { siteId: string; verified:
 
   if (q.isLoading) return <Skeleton className="h-44 w-full rounded-2xl" />;
   if (q.isError || !q.data) {
-    return <QueryErrorState message="Could not load monitoring status." onRetry={() => q.refetch()} />;
+    return <QueryErrorState description="Could not load monitoring status." onRetry={() => { void q.refetch(); }} />;
   }
 
   const s = q.data;
