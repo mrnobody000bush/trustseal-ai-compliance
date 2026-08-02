@@ -2,9 +2,20 @@ import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+/**
+ * Canonical, permanent origin the widget script is served from.
+ * Override with VITE_WIDGET_ORIGIN once the production domain is live so the
+ * snippet never depends on the preview/deploy URL a user happens to be on.
+ */
+export const WIDGET_SCRIPT_ORIGIN: string =
+  (import.meta.env['VITE_WIDGET_ORIGIN'] as string | undefined) ??
+  (typeof window !== "undefined" ? window.location.origin : "");
+
+export const WIDGET_SCRIPT_URL = `${WIDGET_SCRIPT_ORIGIN}/embed.js`;
+
 /** Single source of truth for the TrustSeal widget snippet. */
 export function buildWidgetSnippet(token: string, origin?: string) {
-  const base = origin ?? (typeof window !== "undefined" ? window.location.origin : "");
+  const base = origin ?? WIDGET_SCRIPT_ORIGIN;
   return `<script async src="${base}/embed.js" data-trustseal="${token}"></script>`;
 }
 

@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { PLAN_TIERS, SubscriptionPlans } from "@/lib/plan-tiers";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -16,61 +17,9 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-type Plan = {
-  key: string;
-  name: string;
-  price: number;
-  desc: string;
-  features: string[];
-  cta: string;
-  featured?: boolean;
-};
-
 function PricingPage() {
-  const plans: Plan[] = [
-    {
-      key: "free",
-      name: "Free",
-      price: 0,
-      desc: "Try TrustSeal on one site — no card required.",
-      features: [
-        "1 store",
-        "3 compliance scans",
-        "Basic EU AI Act score",
-        "AI auto-fix locked",
-      ],
-      cta: "Start free",
-    },
-    {
-      key: "growth",
-      name: "Growth",
-      price: 99,
-      desc: "For growing brands ready for EU AI Act 2026.",
-      features: [
-        "Up to 5 stores",
-        "Full EU AI Act reports",
-        "Unlimited “Fix with TrustSeal AI”",
-        "Trust widget with AI chat",
-        "Email support",
-      ],
-      cta: "Upgrade to Growth",
-      featured: true,
-    },
-    {
-      key: "scale",
-      name: "Scale",
-      price: 299,
-      desc: "For agencies and multi-brand retailers.",
-      features: [
-        "Unlimited stores & scans",
-        "Custom branded PDF certificates",
-        "Priority support",
-        "White-label widget",
-        "SLA & onboarding",
-      ],
-      cta: "Upgrade to Scale",
-    },
-  ];
+  const plans = PLAN_TIERS.map((t) => SubscriptionPlans[t]);
+
 
   return (
     <div className="min-h-screen bg-background">
