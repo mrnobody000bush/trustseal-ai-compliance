@@ -33,6 +33,16 @@ export const ReportSchema = z.object({
   findings: z.array(FindingSchema).default([]),
 });
 
+/** Transparent scoring: start at 100, subtract per severity. */
+export const SEVERITY_PENALTY = { critical: 15, high: 8, medium: 4, low: 2 } as const;
+
+export function computeScore(
+  findings: Array<{ severity: keyof typeof SEVERITY_PENALTY }>,
+): number {
+  const total = findings.reduce((sum, f) => sum + (SEVERITY_PENALTY[f.severity] ?? 0), 0);
+  return Math.max(0, Math.min(100, 100 - total));
+}
+
 export function extractJson(text: string): unknown {
   const cleaned = text
     .replace(/^\s*```(?:json)?/i, "")
