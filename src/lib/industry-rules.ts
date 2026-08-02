@@ -69,7 +69,8 @@ export const INDUSTRY_PROFILES: Record<Industry, IndustryProfile> = {
       "Logging / traceability of automated decisions (AI Act Art. 12)",
     ],
     scoringPolicy:
-      "MAXIMUM strictness (high-risk system). Any missing personal-data safeguard, absent human-oversight statement, or undisclosed automated decision-making is at least 'high' severity; missing GDPR Art. 22 safeguards are 'critical'. Cap the score at 60 if automated candidate decisions are not clearly disclosed.",
+      "Annex III high-risk duties are NOT yet binding (they apply from 2 Dec 2027): report them as 'low'/'medium' future obligations. Score strictly on what applies today: Art. 50 transparency (disclosure of AI in candidate interaction/screening) and GDPR Art. 22 safeguards — missing GDPR automated-decision safeguards can be 'high'.",
+
   },
   edtech: {
     regulatoryContext:
@@ -85,7 +86,8 @@ export const INDUSTRY_PROFILES: Record<Industry, IndustryProfile> = {
       "DPIA and accessibility statement for learners with disabilities",
     ],
     scoringPolicy:
-      "MAXIMUM strictness (high-risk system). Treat any emotion-recognition or biometric proctoring without explicit lawful basis as 'critical'. Missing minors' data safeguards or unreviewed automated grading is at least 'high'. Cap the score at 60 when AI evaluation is undisclosed.",
+      "Art. 5 prohibitions apply today: emotion recognition in education without a medical/safety exception is 'critical'. Annex III high-risk duties apply only from 2 Dec 2027 — report them as 'low'/'medium' future obligations. Score strictly on Art. 50 transparency and GDPR minors' safeguards (Art. 8), which can be 'high'.",
+
   },
   fintech: {
     regulatoryContext:
@@ -102,7 +104,8 @@ export const INDUSTRY_PROFILES: Record<Industry, IndustryProfile> = {
       "Data security posture: encryption, breach notification commitments",
     ],
     scoringPolicy:
-      "High strictness on financial standards: missing licence disclosure, unexplained automated credit decisions, or absent SCA/security statements are at least 'high' severity; undisclosed automated credit scoring is 'critical'.",
+      "Annex III(5)(b) creditworthiness high-risk duties apply only from 2 Dec 2027 — report them as future obligations ('low'/'medium'). Score strictly on today's binding duties: Art. 50 transparency, GDPR Art. 22 contestability, licence disclosure and SCA/security statements ('high' when absent).",
+
   },
 };
 
