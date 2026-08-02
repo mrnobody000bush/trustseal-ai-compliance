@@ -57,7 +57,8 @@ export const INDUSTRY_PROFILES: Record<Industry, IndustryProfile> = {
   },
   hr: {
     regulatoryContext:
-      "EU AI Act Annex III(4) HIGH-RISK: AI used for recruitment, candidate filtering, evaluation or promotion decisions. Full high-risk obligations apply (risk management, data governance, logging, human oversight, technical documentation, registration) plus strict GDPR duties.",
+      "EU AI Act Annex III(4): AI used for recruitment, candidate filtering, evaluation or promotion. High-risk obligations for standalone Annex III systems apply only from 2 Dec 2027 (deferred by the Digital Omnibus, Reg. 2026/1744). Binding today: Art. 5 prohibitions, Art. 50 transparency and GDPR duties for candidate data.",
+
     criteria: [
       ...BASE_CRITERIA,
       "Explicit notice that AI is used in candidate screening/ranking (AI Act Art. 26(7), Art. 86 right to explanation)",
@@ -74,7 +75,8 @@ export const INDUSTRY_PROFILES: Record<Industry, IndustryProfile> = {
   },
   edtech: {
     regulatoryContext:
-      "EU AI Act Annex III(3) HIGH-RISK: AI used for access to education, learner evaluation, or proctoring. Full high-risk obligations apply, plus GDPR protections for minors.",
+      "EU AI Act Annex III(3): AI used for access to education, learner evaluation or proctoring. High-risk obligations apply only from 2 Dec 2027 (deferred by the Digital Omnibus, Reg. 2026/1744). Binding today: Art. 5 (emotion recognition in education is prohibited), Art. 50 transparency and GDPR protections for minors.",
+
     criteria: [
       ...BASE_CRITERIA,
       "Disclosure of AI-based grading, admission or learner-evaluation systems",
@@ -91,7 +93,8 @@ export const INDUSTRY_PROFILES: Record<Industry, IndustryProfile> = {
   },
   fintech: {
     regulatoryContext:
-      "EU AI Act Annex III(5)(b) high-risk creditworthiness assessment where applicable, plus DORA, PSD2/SCA, MiCA (if crypto), AMLD and GDPR financial-data duties.",
+      "EU AI Act Annex III(5)(b) creditworthiness assessment (high-risk duties from 2 Dec 2027), plus today's binding Art. 50 transparency, DORA, PSD2/SCA, MiCA (if crypto), AMLD and GDPR financial-data duties.",
+
     criteria: [
       ...BASE_CRITERIA,
       "Disclosure of AI/automated credit scoring or risk assessment and the right to explanation",
