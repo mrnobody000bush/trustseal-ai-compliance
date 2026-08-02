@@ -13,6 +13,8 @@ import {
   isHighRisk,
   type Industry,
 } from "@/lib/industry-rules";
+import { EU_AI_ACT_KB } from "@/lib/eu-ai-act-kb";
+
 
 const FindingSchema = z.object({
   severity: z
@@ -183,7 +185,9 @@ export async function executeScan(client: AnyClient, scanId: string): Promise<Ex
   const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
   const gateway = createLovableAiGatewayProvider(apiKey);
 
-  const prompt = `You are an EU AI Act (Regulation 2024/1689) compliance auditor. The core AI Act obligations for transparency and high-risk uses take effect in August 2026.
+  const prompt = `You are an EU AI Act compliance auditor. Today's date is ${new Date().toISOString().slice(0, 10)}. Use ONLY the facts in the knowledge base below — never invent dates, articles or obligations.
+
+${EU_AI_ACT_KB}
 
 Analyze the following website and return a compliance report as JSON.
 
@@ -198,20 +202,24 @@ ${pageText || "(could not fetch page content; base your report on the domain nam
 """
 
 Return:
-- score: integer 0-100 (100 = fully compliant)
-- summary: one-paragraph plain-language summary that names the sector and its regulatory regime
+- score: integer 0-100 (technical readiness score, never described as legal compliance)
+- summary: one-paragraph plain-language summary naming the sector, the currently applicable regime (Art. 50 since 2 Aug 2026) and ending with the exact disclaimer sentence from the knowledge base
 - findings: array of objects with severity ("low"|"medium"|"high"|"critical"), category, title, description, recommendation
 
-Evaluate strictly against the sector-specific criteria above and apply the stated scoring policy.${
+Rules for every finding:
+- category MUST name the framework and the role, e.g. "AI Act Art. 50(1) — Provider", "AI Act Art. 5 — Deployer", "GDPR Art. 13 — Deployer" (keep GDPR/DSA findings clearly separated from AI Act findings).
+- Only currently applicable obligations may carry "high"/"critical" severity. Annex III high-risk requirements are NOT yet binding: report them as "low" or "medium" and start the title with "Future obligation (from 2 Dec 2027):".
+- Never state or imply full compliance, guaranteed compliance, or absence of fines.
+${
     highRisk
-      ? " This is a HIGH-RISK sector: prioritise personal-data protection (GDPR) and automated-decision safeguards in your findings."
-      : ""
+      ? "- This sector falls under Annex III: treat high-risk duties as recommended preparation for 2 Dec 2027, while scoring today's binding Art. 50 transparency duties and GDPR safeguards strictly.\n"
+      : "- Prioritise Art. 50 transparency: chatbot/AI-assistant disclosure, machine-readable marking of synthetic media, deepfake disclosure.\n"
   }
-
 Be specific and actionable. Return ${highRisk ? "6–10" : "4–8"} findings.
 
 Respond with ONLY a raw JSON object matching this shape, no markdown, no commentary:
 {"score":0,"summary":"","findings":[{"severity":"low","category":"","title":"","description":"","recommendation":""}]}`;
+
 
   let report: z.infer<typeof ReportSchema>;
   try {

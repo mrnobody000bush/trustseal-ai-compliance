@@ -7,7 +7,11 @@
 
 export const COMPLIANCE_TOTAL_CHECKS = 14;
 
-export const AI_DISCLAIMER = "AI-assisted analysis. Not legal advice.";
+export { EU_AI_ACT_DISCLAIMER } from "@/lib/eu-ai-act-kb";
+
+export const AI_DISCLAIMER =
+  "Technical readiness assessment based on the AI Act as amended by the Digital Omnibus (Reg. 2026/1744). Not legal advice.";
+
 
 /** How many of the automated checks passed, derived from score/findings. */
 export function passedChecks(
