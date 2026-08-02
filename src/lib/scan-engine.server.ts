@@ -201,20 +201,32 @@ PAGE CONTENT (homepage + key legal/policy pages, truncated):
 ${pageText || "(could not fetch page content; base your report on the domain name and general expectations for an EU-facing website in this sector)"}
 """
 
+SCORING SCALE (use exactly this, start from 100 and subtract per finding):
+- critical: -15
+- high: -8
+- medium: -4
+- low: -2
+Floor the result at 0.
+
 Return:
-- score: integer 0-100 (technical readiness score, never described as legal compliance)
-- summary: one-paragraph plain-language summary naming the sector, the currently applicable regime (Art. 50 since 2 Aug 2026) and ending with the exact disclaimer sentence from the knowledge base
+- score: integer 0-100 computed with the scoring scale above (technical readiness score, never described as legal compliance)
+- summary: one paragraph that (a) names the sector, (b) states the scoring logic in one sentence ("Score starts at 100: critical -15, high -8, medium -4, low -2"), (c) contains verbatim the sentence: "Focus: obligations applicable as of 2 August 2026 (mainly Art. 50 + Art. 5). High-risk Annex III obligations are future (from 2 Dec 2027)." and (d) ends with the exact disclaimer sentence from the knowledge base
 - findings: array of objects with severity ("low"|"medium"|"high"|"critical"), category, title, description, recommendation
 
 Rules for every finding:
-- category MUST name the framework and the role, e.g. "AI Act Art. 50(1) — Provider", "AI Act Art. 5 — Deployer", "GDPR Art. 13 — Deployer" (keep GDPR/DSA findings clearly separated from AI Act findings).
+- category MUST be formatted exactly as "Framework: <X> | Role: <Y> (<Article>)".
+  - Framework is one of: "EU AI Act", "GDPR", "DSA", "Overlapping (AI Act / GDPR)", "Overlapping (AI Act / DSA)".
+  - Role is "Provider" or "Deployer", always followed by the article in parentheses.
+  - Examples: "Framework: EU AI Act | Role: Deployer (Art. 50(1))", "Framework: EU AI Act | Role: Provider (Art. 50(2))", "Framework: Overlapping (AI Act / GDPR) | Role: Deployer (Art. 50(3) / GDPR Art. 13)".
+- Never mix two frameworks inside one finding without using an "Overlapping (...)" label.
 - Only currently applicable obligations may carry "high"/"critical" severity. Annex III high-risk requirements are NOT yet binding: report them as "low" or "medium" and start the title with "Future obligation (from 2 Dec 2027):".
 - Never state or imply full compliance, guaranteed compliance, or absence of fines.
 ${
     highRisk
       ? "- This sector falls under Annex III: treat high-risk duties as recommended preparation for 2 Dec 2027, while scoring today's binding Art. 50 transparency duties and GDPR safeguards strictly.\n"
-      : "- Prioritise Art. 50 transparency: chatbot/AI-assistant disclosure, machine-readable marking of synthetic media, deepfake disclosure.\n"
+      : "- Prioritise Art. 50 transparency for a typical e-commerce store: AI chatbot/assistant disclosure, AI-generated product descriptions and images (machine-readable marking), AI-generated reviews, deepfake/synthetic media disclosure.\n"
   }
+
 Be specific and actionable. Return ${highRisk ? "6–10" : "4–8"} findings.
 
 Respond with ONLY a raw JSON object matching this shape, no markdown, no commentary:
