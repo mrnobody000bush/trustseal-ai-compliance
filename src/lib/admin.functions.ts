@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { planPrice } from "@/lib/plan-tiers";
 
 async function assertAdmin(supabaseAdmin: any, userId: string) {
   const { data, error } = await supabaseAdmin
@@ -83,7 +84,7 @@ export const getAdminStats = createServerFn({ method: "GET" })
         .select("id,site_id,event_type,created_at")
         .order("created_at", { ascending: false })
         .limit(2000),
-      supabaseAdmin.from("profiles").select("id,email,full_name,created_at"),
+      supabaseAdmin.from("profiles").select("id,email,full_name,plan,created_at"),
     ]);
 
     const sites = sitesRes.data ?? [];
@@ -94,8 +95,14 @@ export const getAdminStats = createServerFn({ method: "GET" })
     const activeClientIds = new Set(sites.filter((s: any) => s.is_active).map((s: any) => s.user_id));
     const activeClients = activeClientIds.size;
 
-    // Projected MRR: $49 per active client (starter tier proxy)
-    const mrr = activeClients * 49;
+    // MRR = sum of the real plan prices of active clients (see SubscriptionPlans)
+    const planByUser = new Map<string, unknown>(
+      profiles.map((p: any) => [p.id, p.plan]),
+    );
+    const mrr = Array.from(activeClientIds).reduce(
+      (sum, uid) => sum + planPrice(planByUser.get(uid as string)),
+      0,
+    );
     const arr = mrr * 12;
 
     // Build 14-day AI load series from scans + widget events

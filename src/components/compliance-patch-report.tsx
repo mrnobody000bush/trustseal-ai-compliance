@@ -1,6 +1,7 @@
 import { CheckCircle2, Download, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AI_DISCLAIMER, COMPLIANCE_TOTAL_CHECKS } from "@/lib/compliance-score";
 
 interface Props {
   siteName: string;
@@ -58,14 +59,19 @@ export function CompliancePatchReport({ siteName, siteDomain }: Props) {
     doc.setTextColor(20, 20, 20);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text("Certificate of Full Compliance", margin, y);
+    doc.text("Audit Readiness Report", margin, y);
     y += 22;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     doc.text(`Issued to: ${siteName}`, margin, y); y += 16;
     doc.text(`Domain: ${siteDomain}`, margin, y); y += 16;
     doc.text(`Date: ${new Date().toLocaleDateString()}`, margin, y); y += 16;
-    doc.text(`Compliance score: 100 / 100`, margin, y); y += 24;
+    doc.text(
+      `Automated checks passed: ${COMPLIANCE_TOTAL_CHECKS} / ${COMPLIANCE_TOTAL_CHECKS}`,
+      margin,
+      y,
+    ); y += 16;
+    doc.text(AI_DISCLAIMER, margin, y); y += 24;
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
@@ -88,7 +94,7 @@ export function CompliancePatchReport({ siteName, siteDomain }: Props) {
     doc.setFontSize(9);
     doc.setTextColor(90, 90, 90);
     doc.text(
-      "This certificate confirms that the above storefront has been automatically remediated by TrustSeal AI",
+      "This report documents automated checks and remediations applied by TrustSeal AI",
       margin,
       y,
     ); y += 12;
@@ -107,10 +113,12 @@ export function CompliancePatchReport({ siteName, siteDomain }: Props) {
         <ShieldCheck className="h-7 w-7 shrink-0 text-primary" />
         <div>
           <div className="text-xs uppercase tracking-wider text-primary">Compliance Patch Report</div>
-          <div className="mt-1 text-lg font-semibold">All findings resolved by TrustSeal AI</div>
+          <div className="mt-1 text-lg font-semibold">All automated checks passed after TrustSeal AI fixes</div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Detailed breakdown of the compliance patches applied to your storefront.
+            {COMPLIANCE_TOTAL_CHECKS}/{COMPLIANCE_TOTAL_CHECKS} automated checks passed. Detailed
+            breakdown of the compliance patches applied to your storefront.
           </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">{AI_DISCLAIMER}</p>
         </div>
       </div>
 
@@ -138,7 +146,7 @@ export function CompliancePatchReport({ siteName, siteDomain }: Props) {
       <div className="mt-6 flex justify-end">
         <Button size="sm" variant="outline" onClick={downloadPdf}>
           <Download className="mr-2 h-4 w-4" />
-          Download official EU AI Act 2026 compliance PDF
+          Download EU AI Act 2026 audit readiness PDF
         </Button>
       </div>
     </div>

@@ -9,6 +9,7 @@ import { applyAiFix } from "@/lib/scans.functions";
 import { useAuth } from "@/components/auth-provider";
 import { useAdminMode } from "@/lib/admin-mode";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { AI_DISCLAIMER, COMPLIANCE_TOTAL_CHECKS, passedChecks } from "@/lib/compliance-score";
 
 interface Props {
   siteId: string;
@@ -114,9 +115,13 @@ export function FixWithAIButton({ siteId, currentScore, onFixed }: Props) {
               <div className="text-xs uppercase text-primary">
                 {fixing ? "TrustSeal AI is fixing your site" : "Fixed by TrustSeal AI"}
               </div>
-              <div className="mt-1 text-5xl font-bold text-primary tabular-nums">
-                {animScore}<span className="text-2xl text-muted-foreground">/100</span>
+              <div className="mt-1 text-4xl font-bold text-primary tabular-nums">
+                {passedChecks(animScore)}
+                <span className="text-2xl text-muted-foreground">
+                  /{COMPLIANCE_TOTAL_CHECKS} checks passed
+                </span>
               </div>
+              <div className="mt-1 text-[11px] text-muted-foreground">{AI_DISCLAIMER}</div>
             </div>
             {done ? (
               <ShieldCheck className="h-10 w-10 text-primary" />

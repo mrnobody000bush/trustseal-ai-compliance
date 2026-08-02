@@ -27,6 +27,7 @@ import { MonitoringCard } from "@/components/monitoring-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QueryErrorState } from "@/components/query-error-state";
 import { buildWidgetSnippet } from "@/components/widget-snippet";
+import { AI_DISCLAIMER, checksLabel, complianceStatusLabel } from "@/lib/compliance-score";
 
 
 import { INDUSTRIES, isHighRisk, type Industry } from "@/lib/industry-rules";
@@ -253,14 +254,22 @@ function SitePage() {
         <div className="mt-6 rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs uppercase text-muted-foreground">Score</div>
-              <div className="text-4xl font-bold text-primary transition-all">{latest.score ?? "—"}</div>
+              <div className="text-xs uppercase text-muted-foreground">Automated checks</div>
+              <div className="text-4xl font-bold text-primary transition-all">
+                {latest.status === "completed"
+                  ? checksLabel(
+                      latest.score,
+                      Array.isArray(latest.findings) ? latest.findings.length : undefined,
+                    )
+                  : "—"}
+              </div>
             </div>
-            <Badge variant={latest.score === 100 ? "default" : latest.status === "completed" ? "default" : "secondary"}>
-              {latest.score === 100 ? "Fully Compliant" : latest.status}
+            <Badge variant={latest.status === "completed" ? "default" : "secondary"}>
+              {latest.status === "completed" ? complianceStatusLabel(latest.score) : latest.status}
             </Badge>
           </div>
           {latest.summary && <p className="mt-4 text-sm text-muted-foreground">{latest.summary}</p>}
+          <p className="mt-2 text-[11px] text-muted-foreground">{AI_DISCLAIMER}</p>
           {latest.score === 100 && (
             <CompliancePatchReport siteName={site.name} siteDomain={site.domain} />
           )}

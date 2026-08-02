@@ -67,7 +67,7 @@ function AdminPanel() {
     title: "Super-admin panel",
     subtitle: "Internal TrustSeal metrics — team only.",
     mrr: "MRR (projected)",
-    mrrHint: "$49 × active clients",
+    mrrHint: "Sum of active client plan prices",
     arr: "ARR (projected)",
     clients: "Active clients",
     clientsHint: "Total accounts",
