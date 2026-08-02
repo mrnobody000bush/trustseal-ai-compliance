@@ -13,6 +13,8 @@ import {
   isHighRisk,
   type Industry,
 } from "@/lib/industry-rules";
+import { EU_AI_ACT_KB } from "@/lib/eu-ai-act-kb";
+
 
 const FindingSchema = z.object({
   severity: z
