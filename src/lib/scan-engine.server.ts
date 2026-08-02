@@ -246,7 +246,8 @@ Respond with ONLY a raw JSON object matching this shape, no markdown, no comment
     return fail(friendlyAiError(err));
   }
 
-  const score = Math.max(0, Math.min(100, Math.round(report.score)));
+  // Deterministic, transparent scoring — the model's own number is only a fallback.
+  const score = computeScore(report.findings);
   const { error: upErr } = await client
     .from("compliance_scans")
     .update({
