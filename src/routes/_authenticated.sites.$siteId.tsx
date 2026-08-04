@@ -20,6 +20,7 @@ import { UpgradeModal } from "@/components/upgrade-modal";
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
+import { ReverificationBanner } from "@/components/reverification-banner";
 import { ConnectorsPanel } from "@/components/connectors-panel";
 import { WidgetAnalyticsPanel } from "@/components/widget-analytics-panel";
 import { MonitoringCard } from "@/components/monitoring-card";
@@ -216,6 +217,12 @@ function SitePage() {
           )}
         </div>
       </div>
+
+      <ReverificationBanner
+        status={site.verification_status}
+        message={site.reverification_message}
+        since={site.needs_reverification_since}
+      />
 
       <Tabs defaultValue="verification" className="mt-6">
         <TabsList>

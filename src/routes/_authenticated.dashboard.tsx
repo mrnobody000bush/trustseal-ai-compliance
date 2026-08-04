@@ -124,6 +124,14 @@ function DashboardPage() {
                       <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary">
                         <ShieldCheck className="h-3 w-3" /> Active Compliance
                       </span>
+                    ) : s.verification_status === "needs_reverification" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
+                        <ShieldAlert className="h-3 w-3" /> Needs re-verification
+                      </span>
+                    ) : s.verification_status === "unverified" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-[11px] font-medium text-destructive">
+                        <ShieldAlert className="h-3 w-3" /> Verification lost
+                      </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
                         <ShieldAlert className="h-3 w-3" /> Pending Verification
