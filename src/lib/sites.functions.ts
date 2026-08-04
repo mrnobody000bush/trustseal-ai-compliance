@@ -18,7 +18,7 @@ export const listSites = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("sites")
-      .select("id, domain, name, description, widget_config, is_active, verification_status, verification_method, verified_at, plugin_last_seen_at, created_at, updated_at, compliance_scans(score, status, created_at)")
+      .select("id, domain, name, description, widget_config, is_active, verification_status, verification_method, verified_at, plugin_last_seen_at, reverification_message, needs_reverification_since, created_at, updated_at, compliance_scans(score, status, created_at)")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -89,6 +89,9 @@ export const revokeVerification = createServerFn({ method: "POST" })
         verification_method: null,
         verified_at: null,
         plugin_last_seen_at: null,
+        reverify_attempts: 0,
+        needs_reverification_since: null,
+        reverification_message: null,
       })
       .eq("id", data.siteId);
     if (error) throw new Error(error.message);
@@ -156,6 +159,10 @@ export const verifyMetaTag = createServerFn({ method: "POST" })
         verification_status: "verified",
         verification_method: "meta_tag",
         verified_at: site.verification_status === "verified" ? undefined : now,
+        reverify_attempts: 0,
+        needs_reverification_since: null,
+        reverification_message: null,
+        last_reverify_check_at: now,
       })
       .eq("id", site.id);
     if (upErr) throw new Error(upErr.message);
@@ -172,6 +179,9 @@ export const forceVerify = createServerFn({ method: "POST" })
         verification_status: "verified",
         verification_method: "manual_override",
         verified_at: new Date().toISOString(),
+        reverify_attempts: 0,
+        needs_reverification_since: null,
+        reverification_message: null,
       })
       .eq("id", data.siteId);
     if (error) throw new Error(error.message);
