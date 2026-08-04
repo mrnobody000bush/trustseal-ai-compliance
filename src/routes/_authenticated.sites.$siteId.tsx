@@ -21,6 +21,7 @@ import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
 import { ReverificationBanner } from "@/components/reverification-banner";
+import { VerificationBadge } from "@/components/verification-badge";
 import { ConnectorsPanel } from "@/components/connectors-panel";
 import { WidgetAnalyticsPanel } from "@/components/widget-analytics-panel";
 import { MonitoringCard } from "@/components/monitoring-card";
