@@ -364,7 +364,13 @@ function SitePage() {
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
                     <div>
                       <div className="font-medium">{new Date(s.created_at).toLocaleString()}</div>
-                      <div className="text-xs text-muted-foreground">{s.status}</div>
+                      <div
+                        className={`text-xs ${s.status === "failed" ? "text-destructive" : "text-muted-foreground"}`}
+                      >
+                        {s.status === "failed"
+                          ? `failed — ${s.error ?? "unknown error"}`
+                          : s.status}
+                      </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="flex items-center gap-1 text-xs font-medium text-primary">
