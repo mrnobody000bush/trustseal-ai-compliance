@@ -52,6 +52,23 @@ export const Route = createFileRoute("/api/public/auto-verify")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { clientIp, consumeRateLimit, rateLimitKey, tooManyRequests } = await import(
+          "@/lib/rate-limit.server"
+        );
+
+        // 10 requests per hour per IP + domain.
+        const limit = await consumeRateLimit(
+          supabaseAdmin,
+          rateLimitKey(
+            "auto-verify",
+            clientIp(request),
+            toHostname(body.domain) ?? toHostname(body.url) ?? toHostname(request.headers.get("origin")),
+          ),
+          10,
+          3600,
+        );
+        if (!limit.allowed) return tooManyRequests(limit, cors());
+
 
         // The data-trustseal value may be the verification token or the site id.
         let { data: site } = await supabaseAdmin

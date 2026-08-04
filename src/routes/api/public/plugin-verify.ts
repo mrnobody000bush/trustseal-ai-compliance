@@ -42,6 +42,19 @@ export const Route = createFileRoute("/api/public/plugin-verify")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { clientIp, consumeRateLimit, rateLimitKey, tooManyRequests } = await import(
+          "@/lib/rate-limit.server"
+        );
+
+        // 20 requests per hour per IP + domain.
+        const limit = await consumeRateLimit(
+          supabaseAdmin,
+          rateLimitKey("plugin-verify", clientIp(request), normalize(body.domain)),
+          20,
+          3600,
+        );
+        if (!limit.allowed) return tooManyRequests(limit, cors());
+
 
         const { data: site } = await supabaseAdmin
           .from("sites")

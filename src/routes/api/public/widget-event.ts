@@ -25,6 +25,19 @@ export const Route = createFileRoute("/api/public/widget-event")({
         try {
           const body = Body.parse(await request.json());
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { clientIp, consumeRateLimit, rateLimitKey, tooManyRequests } = await import(
+            "@/lib/rate-limit.server"
+          );
+
+          // 60 requests per minute per site + IP.
+          const limit = await consumeRateLimit(
+            supabaseAdmin,
+            rateLimitKey("widget-event", body.site_id ?? body.token, clientIp(request)),
+            60,
+            60,
+          );
+          if (!limit.allowed) return tooManyRequests(limit, cors());
+
           const query = supabaseAdmin
             .from("sites")
             .select("id")

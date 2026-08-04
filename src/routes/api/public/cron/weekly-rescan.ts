@@ -14,9 +14,20 @@ const BATCH = 10;
 export const Route = createFileRoute("/api/public/cron/weekly-rescan")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // Only the scheduler may trigger re-scans: require the project apikey.
+        const expected = process.env["SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"];
+        const provided =
+          request.headers.get("apikey") ??
+          request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
+          "";
+        if (!expected || provided !== expected) {
+          return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+        }
+
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { executeScan } = await import("@/lib/scan-engine.server");
+
 
         const cutoff = new Date(Date.now() - WEEK_MS).toISOString();
         const { data: sites, error } = await supabaseAdmin
