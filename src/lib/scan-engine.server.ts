@@ -231,11 +231,19 @@ Rules for every finding:
 - Never mix two frameworks inside one finding without using an "Overlapping (...)" label.
 - Only currently applicable obligations may carry "high"/"critical" severity. Annex III high-risk requirements are NOT yet binding: report them as "low" or "medium" and start the title with "Future obligation (from 2 Dec 2027):".
 - Never state or imply full compliance, guaranteed compliance, or absence of fines.
+
+EVIDENCE DISCIPLINE (critical — do not speculate):
+- Base every finding on what is actually observable in the crawled page content. Do NOT assume the site uses a chatbot, AI assistant, AI-generated product descriptions, AI-generated images, AI-generated reviews, recommendation AI, biometric or emotion recognition unless there is explicit evidence in the text (e.g. visible widget/vendor names, "AI"/"powered by", chat scripts, disclosures).
+- When evidence is indirect, partial or absent, do all three: prefix the title with "Possible" or "Potential", say explicitly in the description that this was not confirmed from the crawled pages and what evidence would confirm it, and cap the severity at "medium" (use "low" when there is no evidence at all, only a sector-typical expectation).
+- Synthetic media: never assert that images or media on the site are AI-generated. Phrase conditionally ("If any product imagery or media is AI-generated or manipulated, Art. 50(4) marking applies…").
+- Missing legal/transparency documents (no privacy policy, no cookie notice, no AI disclosure page found in the crawl) ARE verifiable absences — those may be stated factually, but say they were "not found in the crawled pages" rather than "do not exist".
+- Prefer fewer, well-evidenced findings over many speculative ones. It is acceptable to return the lower bound of the requested range.
 ${
     highRisk
       ? "- This sector falls under Annex III: treat high-risk duties as recommended preparation for 2 Dec 2027, while scoring today's binding Art. 50 transparency duties and GDPR safeguards strictly.\n"
-      : "- Prioritise Art. 50 transparency for a typical e-commerce store: AI chatbot/assistant disclosure, AI-generated product descriptions and images (machine-readable marking), AI-generated reviews, deepfake/synthetic media disclosure.\n"
+      : "- Prioritise Art. 50 transparency for a typical e-commerce store: AI chatbot/assistant disclosure, AI-generated product descriptions and images (machine-readable marking), AI-generated reviews, deepfake/synthetic media disclosure — but only where evidence supports it, otherwise as conditional 'Possible/Potential' findings.\n"
   }
+
 
 Be specific and actionable. Return ${highRisk ? "6–10" : "4–8"} findings.
 

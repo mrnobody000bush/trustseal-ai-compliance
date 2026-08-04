@@ -18,7 +18,7 @@ export const listSites = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("sites")
-      .select("id, domain, name, description, widget_config, is_active, verification_status, verification_method, verified_at, plugin_last_seen_at, reverification_message, needs_reverification_since, created_at, updated_at, compliance_scans(score, status, created_at)")
+      .select("id, domain, name, description, widget_config, is_active, verification_status, verification_method, verified_at, plugin_last_seen_at, last_reverify_check_at, reverification_message, needs_reverification_since, created_at, updated_at, compliance_scans(score, status, error, created_at)")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];

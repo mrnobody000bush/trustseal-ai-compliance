@@ -21,6 +21,7 @@ import { checkIsAdmin } from "@/lib/admin.functions";
 import { useAuth } from "@/components/auth-provider";
 import { DomainVerificationCard } from "@/components/domain-verification-card";
 import { ReverificationBanner } from "@/components/reverification-banner";
+import { VerificationBadge } from "@/components/verification-badge";
 import { ConnectorsPanel } from "@/components/connectors-panel";
 import { WidgetAnalyticsPanel } from "@/components/widget-analytics-panel";
 import { MonitoringCard } from "@/components/monitoring-card";
@@ -171,7 +172,11 @@ function SitePage() {
         <div>
           <h1 className="text-2xl font-bold">{site.name}</h1>
           <div className="text-sm text-muted-foreground">{site.domain}</div>
+          <div className="mt-2">
+            <VerificationBadge status={site.verification_status} />
+          </div>
         </div>
+
         <div className="flex flex-col items-end gap-2">
           <div className="w-[260px] space-y-1.5 text-left">
             <Label htmlFor="industry-select">Industry / Sector</Label>
@@ -271,12 +276,38 @@ function SitePage() {
                   : "—"}
               </div>
             </div>
-            <Badge variant={latest.status === "completed" ? "default" : "secondary"}>
+            <Badge
+              variant={
+                latest.status === "completed"
+                  ? "default"
+                  : latest.status === "failed"
+                    ? "destructive"
+                    : "secondary"
+              }
+            >
               {latest.status === "completed" ? complianceStatusLabel(latest.score) : latest.status}
             </Badge>
           </div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <span>Last scan: {new Date(latest.created_at).toLocaleString()}</span>
+            {site.verified_at && (
+              <span>Verified: {new Date(site.verified_at).toLocaleString()}</span>
+            )}
+            {site.last_reverify_check_at && (
+              <span>
+                Last ownership check: {new Date(site.last_reverify_check_at).toLocaleString()}
+              </span>
+            )}
+          </div>
+          {latest.status === "failed" && (
+            <p className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              <span className="font-semibold">Scan failed: </span>
+              {latest.error ?? "Unknown error. Please run the scan again."}
+            </p>
+          )}
           {latest.summary && <p className="mt-4 text-sm text-muted-foreground">{latest.summary}</p>}
           <p className="mt-2 text-[11px] text-muted-foreground">{AI_DISCLAIMER}</p>
+
           {latest.score === 100 && (
             <CompliancePatchReport siteName={site.name} siteDomain={site.domain} />
           )}
@@ -333,7 +364,13 @@ function SitePage() {
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
                     <div>
                       <div className="font-medium">{new Date(s.created_at).toLocaleString()}</div>
-                      <div className="text-xs text-muted-foreground">{s.status}</div>
+                      <div
+                        className={`text-xs ${s.status === "failed" ? "text-destructive" : "text-muted-foreground"}`}
+                      >
+                        {s.status === "failed"
+                          ? `failed — ${s.error ?? "unknown error"}`
+                          : s.status}
+                      </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="flex items-center gap-1 text-xs font-medium text-primary">
