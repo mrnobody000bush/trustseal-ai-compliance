@@ -271,12 +271,38 @@ function SitePage() {
                   : "—"}
               </div>
             </div>
-            <Badge variant={latest.status === "completed" ? "default" : "secondary"}>
+            <Badge
+              variant={
+                latest.status === "completed"
+                  ? "default"
+                  : latest.status === "failed"
+                    ? "destructive"
+                    : "secondary"
+              }
+            >
               {latest.status === "completed" ? complianceStatusLabel(latest.score) : latest.status}
             </Badge>
           </div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <span>Last scan: {new Date(latest.created_at).toLocaleString()}</span>
+            {site.verified_at && (
+              <span>Verified: {new Date(site.verified_at).toLocaleString()}</span>
+            )}
+            {site.last_reverify_check_at && (
+              <span>
+                Last ownership check: {new Date(site.last_reverify_check_at).toLocaleString()}
+              </span>
+            )}
+          </div>
+          {latest.status === "failed" && (
+            <p className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              <span className="font-semibold">Scan failed: </span>
+              {latest.error ?? "Unknown error. Please run the scan again."}
+            </p>
+          )}
           {latest.summary && <p className="mt-4 text-sm text-muted-foreground">{latest.summary}</p>}
           <p className="mt-2 text-[11px] text-muted-foreground">{AI_DISCLAIMER}</p>
+
           {latest.score === 100 && (
             <CompliancePatchReport siteName={site.name} siteDomain={site.domain} />
           )}
