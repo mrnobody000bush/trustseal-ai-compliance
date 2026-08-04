@@ -104,7 +104,10 @@ function DashboardPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {sites.map((s) => {
-              const last = s.compliance_scans?.[0];
+              const scans = [...(s.compliance_scans ?? [])].sort(
+                (a, b) => +new Date(b.created_at) - +new Date(a.created_at),
+              );
+              const last = scans[0];
               return (
                 <Link
                   key={s.id}
@@ -120,35 +123,33 @@ function DashboardPage() {
                     <ExternalLink className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="mt-3">
-                    {s.verification_status === "verified" ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary">
-                        <ShieldCheck className="h-3 w-3" /> Active Compliance
-                      </span>
-                    ) : s.verification_status === "needs_reverification" ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
-                        <ShieldAlert className="h-3 w-3" /> Needs re-verification
-                      </span>
-                    ) : s.verification_status === "unverified" ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-[11px] font-medium text-destructive">
-                        <ShieldAlert className="h-3 w-3" /> Verification lost
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
-                        <ShieldAlert className="h-3 w-3" /> Pending Verification
-                      </span>
-                    )}
+                    <VerificationBadge status={s.verification_status} />
                   </div>
                   <div className="mt-4 flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Score</span>
-                    <span className="font-semibold">{last?.score ?? "—"}</span>
+                    <span className="font-semibold">
+                      {last?.status === "completed" ? (last.score ?? "—") : "—"}
+                    </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                     <span>Last scan</span>
-                    <span>{last ? new Date(last.created_at).toLocaleDateString() : "Never"}</span>
+                    <span>{last ? new Date(last.created_at).toLocaleString() : "Never"}</span>
                   </div>
+                  {s.verification_status === "verified" && s.last_reverify_check_at && (
+                    <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Last ownership check</span>
+                      <span>{new Date(s.last_reverify_check_at).toLocaleString()}</span>
+                    </div>
+                  )}
+                  {last?.status === "failed" && (
+                    <p className="mt-2 rounded-lg bg-destructive/10 px-2 py-1 text-[11px] text-destructive">
+                      Last scan failed: {last.error ?? "unknown error"}
+                    </p>
+                  )}
                 </Link>
               );
             })}
+
           </div>
         )}
       </div>
