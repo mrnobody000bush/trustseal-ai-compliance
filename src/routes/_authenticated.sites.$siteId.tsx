@@ -171,7 +171,11 @@ function SitePage() {
         <div>
           <h1 className="text-2xl font-bold">{site.name}</h1>
           <div className="text-sm text-muted-foreground">{site.domain}</div>
+          <div className="mt-2">
+            <VerificationBadge status={site.verification_status} />
+          </div>
         </div>
+
         <div className="flex flex-col items-end gap-2">
           <div className="w-[260px] space-y-1.5 text-left">
             <Label htmlFor="industry-select">Industry / Sector</Label>
