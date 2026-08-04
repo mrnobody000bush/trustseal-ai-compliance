@@ -103,7 +103,7 @@ export const getScan = createServerFn({ method: "POST" })
       scan.status === "running" &&
       Date.now() - new Date(scan.created_at).getTime() > SCAN_TIMEOUT_MS
     ) {
-      const message = "Scan timed out. Please try again.";
+      const message = SCAN_TIMEOUT_MESSAGE;
       await context.supabase
         .from("compliance_scans")
         .update({ status: "failed", error: message })
