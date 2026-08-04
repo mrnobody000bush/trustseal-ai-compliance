@@ -173,9 +173,13 @@ export type Database = {
           id: string
           is_active: boolean
           last_auto_scan_at: string | null
+          last_reverify_check_at: string | null
           monitoring_enabled: boolean
           name: string
+          needs_reverification_since: string | null
           plugin_last_seen_at: string | null
+          reverification_message: string | null
+          reverify_attempts: number
           updated_at: string
           user_id: string
           verification_method: string | null
@@ -191,9 +195,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_auto_scan_at?: string | null
+          last_reverify_check_at?: string | null
           monitoring_enabled?: boolean
           name: string
+          needs_reverification_since?: string | null
           plugin_last_seen_at?: string | null
+          reverification_message?: string | null
+          reverify_attempts?: number
           updated_at?: string
           user_id: string
           verification_method?: string | null
@@ -209,9 +217,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_auto_scan_at?: string | null
+          last_reverify_check_at?: string | null
           monitoring_enabled?: boolean
           name?: string
+          needs_reverification_since?: string | null
           plugin_last_seen_at?: string | null
+          reverification_message?: string | null
+          reverify_attempts?: number
           updated_at?: string
           user_id?: string
           verification_method?: string | null
@@ -221,6 +233,41 @@ export type Database = {
           widget_config?: Json
         }
         Relationships: []
+      }
+      system_events: {
+        Row: {
+          created_at: string
+          detail: Json
+          event_type: string
+          id: string
+          site_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          event_type: string
+          id?: string
+          site_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          event_type?: string
+          id?: string
+          site_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_events_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
