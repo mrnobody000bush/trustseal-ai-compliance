@@ -24,6 +24,7 @@ import { Route as ApiPublicAutoVerifyRouteImport } from './routes/api/public/aut
 import { Route as AuthenticatedSitesSiteIdRouteImport } from './routes/_authenticated.sites.$siteId'
 import { Route as ApiPublicWidgetSiteIdRouteImport } from './routes/api/public/widget.$siteId'
 import { Route as ApiPublicCronWeeklyRescanRouteImport } from './routes/api/public/cron/weekly-rescan'
+import { Route as ApiPublicCronMaintenanceRouteImport } from './routes/api/public/cron/maintenance'
 
 const WidgetDemoRoute = WidgetDemoRouteImport.update({
   id: '/widget-demo',
@@ -101,6 +102,12 @@ const ApiPublicCronWeeklyRescanRoute =
     path: '/api/public/cron/weekly-rescan',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronMaintenanceRoute =
+  ApiPublicCronMaintenanceRouteImport.update({
+    id: '/api/public/cron/maintenance',
+    path: '/api/public/cron/maintenance',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
+  '/api/public/cron/maintenance': typeof ApiPublicCronMaintenanceRoute
   '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
   '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
 }
@@ -131,6 +139,7 @@ export interface FileRoutesByTo {
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
+  '/api/public/cron/maintenance': typeof ApiPublicCronMaintenanceRoute
   '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
   '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
 }
@@ -149,6 +158,7 @@ export interface FileRoutesById {
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
+  '/api/public/cron/maintenance': typeof ApiPublicCronMaintenanceRoute
   '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
   '/api/public/widget/$siteId': typeof ApiPublicWidgetSiteIdRoute
 }
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
     | '/api/public/widget-event'
+    | '/api/public/cron/maintenance'
     | '/api/public/cron/weekly-rescan'
     | '/api/public/widget/$siteId'
   fileRoutesByTo: FileRoutesByTo
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
     | '/api/public/widget-event'
+    | '/api/public/cron/maintenance'
     | '/api/public/cron/weekly-rescan'
     | '/api/public/widget/$siteId'
   id:
@@ -200,6 +212,7 @@ export interface FileRouteTypes {
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
     | '/api/public/widget-event'
+    | '/api/public/cron/maintenance'
     | '/api/public/cron/weekly-rescan'
     | '/api/public/widget/$siteId'
   fileRoutesById: FileRoutesById
@@ -214,6 +227,7 @@ export interface RootRouteChildren {
   ApiPublicAutoVerifyRoute: typeof ApiPublicAutoVerifyRoute
   ApiPublicPluginVerifyRoute: typeof ApiPublicPluginVerifyRoute
   ApiPublicWidgetEventRoute: typeof ApiPublicWidgetEventRoute
+  ApiPublicCronMaintenanceRoute: typeof ApiPublicCronMaintenanceRoute
   ApiPublicCronWeeklyRescanRoute: typeof ApiPublicCronWeeklyRescanRoute
   ApiPublicWidgetSiteIdRoute: typeof ApiPublicWidgetSiteIdRoute
 }
@@ -325,6 +339,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronWeeklyRescanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/maintenance': {
+      id: '/api/public/cron/maintenance'
+      path: '/api/public/cron/maintenance'
+      fullPath: '/api/public/cron/maintenance'
+      preLoaderRoute: typeof ApiPublicCronMaintenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -356,6 +377,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAutoVerifyRoute: ApiPublicAutoVerifyRoute,
   ApiPublicPluginVerifyRoute: ApiPublicPluginVerifyRoute,
   ApiPublicWidgetEventRoute: ApiPublicWidgetEventRoute,
+  ApiPublicCronMaintenanceRoute: ApiPublicCronMaintenanceRoute,
   ApiPublicCronWeeklyRescanRoute: ApiPublicCronWeeklyRescanRoute,
   ApiPublicWidgetSiteIdRoute: ApiPublicWidgetSiteIdRoute,
 }

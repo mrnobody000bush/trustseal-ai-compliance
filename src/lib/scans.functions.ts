@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { PLAN_SCAN_LIMITS, PLAN_TIERS, type PlanTier } from "@/lib/plan-tiers";
 import { INDUSTRY_VALUES, type Industry } from "@/lib/industry-rules";
+import { SCAN_TIMEOUT_MS, SCAN_TIMEOUT_MESSAGE } from "@/lib/scan-timeout";
 
 const ScanSchema = z.object({
   siteId: z.string().uuid(),
@@ -11,8 +12,6 @@ const ScanSchema = z.object({
 
 const ScanIdSchema = z.object({ scanId: z.string().uuid() });
 
-/** Scans stuck in `running` longer than this are surfaced as failed. */
-const SCAN_TIMEOUT_MS = 4 * 60 * 1000;
 
 
 function startOfTodayIso() {
