@@ -232,17 +232,33 @@ Rules for every finding:
 - Only currently applicable obligations may carry "high"/"critical" severity. Annex III high-risk requirements are NOT yet binding: report them as "low" or "medium" and start the title with "Future obligation (from 2 Dec 2027):".
 - Never state or imply full compliance, guaranteed compliance, or absence of fines.
 
-EVIDENCE DISCIPLINE (critical — do not speculate):
-- Base every finding on what is actually observable in the crawled page content. Do NOT assume the site uses a chatbot, AI assistant, AI-generated product descriptions, AI-generated images, AI-generated reviews, recommendation AI, biometric or emotion recognition unless there is explicit evidence in the text (e.g. visible widget/vendor names, "AI"/"powered by", chat scripts, disclosures).
-- When evidence is indirect, partial or absent, do all three: prefix the title with "Possible" or "Potential", say explicitly in the description that this was not confirmed from the crawled pages and what evidence would confirm it, and cap the severity at "medium" (use "low" when there is no evidence at all, only a sector-typical expectation).
-- Synthetic media: never assert that images or media on the site are AI-generated. Phrase conditionally ("If any product imagery or media is AI-generated or manipulated, Art. 50(4) marking applies…").
-- Missing legal/transparency documents (no privacy policy, no cookie notice, no AI disclosure page found in the crawl) ARE verifiable absences — those may be stated factually, but say they were "not found in the crawled pages" rather than "do not exist".
-- Prefer fewer, well-evidenced findings over many speculative ones. It is acceptable to return the lower bound of the requested range.
+EVIDENCE DISCIPLINE (mandatory template — applies to EVERY finding, no exceptions):
+Every description MUST begin with one of exactly two prefixes:
+1. "Confirmed: " — only when the fact is directly visible in the crawled page content. Immediately quote the exact evidence found (short verbatim snippet or the exact page URL/section where it appears).
+2. "Not confirmed from crawl: " — when the fact is not directly visible. You MUST then state what is missing and add a sentence starting with "Confirmation would require " describing the concrete check needed (e.g. inspecting the live DOM for a chat widget, reviewing the vendor list, asking the operator).
+Additional rules:
+- Titles for unconfirmed items start with "Possible" or "Potential"; severity is capped at "medium" (use "low" when there is only a sector-typical expectation and zero evidence).
+- NEVER write vague justifications such as "the sector suggests", "typically e-commerce sites", "it is likely that" without naming exactly what is absent from the crawled data.
+- Missing legal/transparency documents ARE verifiable absences: write "Confirmed: no privacy policy / cookie notice / AI disclosure page was found across the N crawled pages."
+- Synthetic media: never assert images are AI-generated. Phrase conditionally ("If any product imagery is AI-generated or manipulated, Art. 50(4) marking applies…") under the "Not confirmed from crawl: " prefix.
+- Prefer fewer, well-evidenced findings over many speculative ones. Returning the lower bound of the requested range is acceptable.
+
+FORMAT EXAMPLES (follow these exactly):
+
+GOOD (confirmed finding):
+{"severity":"high","category":"Framework: EU AI Act | Role: Deployer (Art. 50(1))","title":"AI chatbot present without AI disclosure","description":"Confirmed: the homepage embeds a chat widget — crawled markup contains \\"Chat with our AI assistant\\" and a script from cdn.tidio.co — but none of the 5 crawled pages state that the user is interacting with an AI system.","recommendation":"Add a visible notice at the start of every chat session stating the user is talking to an AI system, and mirror it in the privacy/AI disclosure page."}
+
+GOOD (unconfirmed finding):
+{"severity":"low","category":"Framework: Overlapping (AI Act / DSA) | Role: Deployer (Art. 50(1) / DSA Art. 27)","title":"Potential AI-driven recommendation system without parameter disclosure","description":"Not confirmed from crawl: the crawled pages contain no evidence of a recommendation engine — no \\"recommended for you\\" module, no personalization vendor script, and no mention of recommendations in the terms or privacy policy. Confirmation would require inspecting the rendered product pages for a personalization widget and reviewing the store's third-party script/vendor list.","recommendation":"If personalized recommendations or ranking are used, publish the main parameters influencing them in the terms, as required by DSA Art. 27."}
+
+BAD (never produce this — vague, no prefix, no evidence, no verification path):
+{"severity":"medium","category":"EU AI Act","title":"Recommendation disclosure","description":"The sector suggests that the store likely uses AI-driven recommendations, which typically require disclosure.","recommendation":"Consider disclosing recommendations."}
 ${
     highRisk
       ? "- This sector falls under Annex III: treat high-risk duties as recommended preparation for 2 Dec 2027, while scoring today's binding Art. 50 transparency duties and GDPR safeguards strictly.\n"
-      : "- Prioritise Art. 50 transparency for a typical e-commerce store: AI chatbot/assistant disclosure, AI-generated product descriptions and images (machine-readable marking), AI-generated reviews, deepfake/synthetic media disclosure — but only where evidence supports it, otherwise as conditional 'Possible/Potential' findings.\n"
+      : "- Prioritise Art. 50 transparency for a typical e-commerce store: AI chatbot/assistant disclosure, AI-generated product descriptions and images (machine-readable marking), AI-generated reviews, deepfake/synthetic media disclosure — but only where evidence supports it, otherwise using the \"Not confirmed from crawl: \" template above.\n"
   }
+
 
 
 Be specific and actionable. Return ${highRisk ? "6–10" : "4–8"} findings.
