@@ -195,7 +195,52 @@ export async function executeScan(client: AnyClient, scanId: string): Promise<Ex
   const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
   const gateway = createLovableAiGatewayProvider(apiKey);
 
-  const prompt = `You are an EU AI Act compliance auditor. Today's date is ${new Date().toISOString().slice(0, 10)}. Use ONLY the facts in the knowledge base below — never invent dates, articles or obligations.
+  const prompt = buildScanPrompt({ name: site.name, url, pages, industry });
+
+  let report: z.infer<typeof ReportSchema>;
+  try {
+    const { text } = await generateText({
+      // High-risk sectors (HR, FinTech, health, …) get the stronger reasoning model.
+      model: gateway(highRisk ? "openai/gpt-5.6-sol" : "google/gemini-3-flash-preview"),
+      prompt,
+      ...(highRisk ? { providerOptions: { lovable: { reasoningEffort: "none" } } } : {}),
+    });
+    report = ReportSchema.parse(extractJson(text));
+  } catch (err) {
+    return fail(friendlyAiError(err));
+  }
+
+  // Deterministic, transparent scoring — the model's own number is only a fallback.
+  const score = computeScore(report.findings);
+  const { error: upErr } = await client
+    .from("compliance_scans")
+    .update({
+      status: "completed",
+      score,
+      summary: report.summary,
+      industry,
+      findings: report.findings,
+      raw_report: report,
+    })
+    .eq("id", scanRow.id);
+  if (upErr) return fail(upErr.message);
+
+  return { ok: true, scanId: scanRow.id, score };
+}
+
+/** Builds the auditor prompt. Exported so prompt-consistency checks can reuse it verbatim. */
+export function buildScanPrompt(args: {
+  name: string;
+  url: string;
+  pages: Array<{ url: string; text: string }>;
+  industry: Industry;
+}): string {
+  const { name, url, pages, industry } = args;
+  const highRisk = isHighRisk(industry);
+  const pageText = pages.map((p, i) => `--- PAGE ${i + 1}: ${p.url} ---\n${p.text}`).join("\n\n");
+
+  return `You are an EU AI Act compliance auditor. Today's date is ${new Date().toISOString().slice(0, 10)}. Use ONLY the facts in the knowledge base below — never invent dates, articles or obligations.
+
 
 ${EU_AI_ACT_KB}
 
