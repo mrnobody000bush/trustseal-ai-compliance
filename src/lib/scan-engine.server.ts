@@ -246,7 +246,7 @@ ${EU_AI_ACT_KB}
 
 Analyze the following website and return a compliance report as JSON.
 
-STORE: ${site.name} (${url})
+STORE: ${name} (${url})
 PAGES CRAWLED: ${pages.length}
 
 ${buildIndustryPromptSection(industry)}
