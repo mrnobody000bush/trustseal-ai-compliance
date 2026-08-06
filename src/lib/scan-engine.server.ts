@@ -310,35 +310,4 @@ Be specific and actionable. Return ${highRisk ? "6–10" : "4–8"} findings.
 
 Respond with ONLY a raw JSON object matching this shape, no markdown, no commentary:
 {"score":0,"summary":"","findings":[{"severity":"low","category":"","title":"","description":"","recommendation":""}]}`;
-
-
-  let report: z.infer<typeof ReportSchema>;
-  try {
-    const { text } = await generateText({
-      // High-risk sectors (HR, FinTech, health, …) get the stronger reasoning model.
-      model: gateway(highRisk ? "openai/gpt-5.6-sol" : "google/gemini-3-flash-preview"),
-      prompt,
-      ...(highRisk ? { providerOptions: { lovable: { reasoningEffort: "none" } } } : {}),
-    });
-    report = ReportSchema.parse(extractJson(text));
-  } catch (err) {
-    return fail(friendlyAiError(err));
-  }
-
-  // Deterministic, transparent scoring — the model's own number is only a fallback.
-  const score = computeScore(report.findings);
-  const { error: upErr } = await client
-    .from("compliance_scans")
-    .update({
-      status: "completed",
-      score,
-      summary: report.summary,
-      industry,
-      findings: report.findings,
-      raw_report: report,
-    })
-    .eq("id", scanRow.id);
-  if (upErr) return fail(upErr.message);
-
-  return { ok: true, scanId: scanRow.id, score };
 }
