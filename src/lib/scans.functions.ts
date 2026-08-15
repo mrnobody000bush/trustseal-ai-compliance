@@ -30,10 +30,15 @@ export const startScan = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: site, error: siteErr } = await context.supabase
       .from("sites")
-      .select("id")
+      .select("id, verification_status")
       .eq("id", data.siteId)
       .single();
     if (siteErr || !site) throw new Error("Site not found");
+    if (site.verification_status !== "verified") {
+      throw new Error(
+        "NOT_VERIFIED: Connect and verify your domain before running a compliance scan.",
+      );
+    }
 
     // --- server-side quota -------------------------------------------------
     const [{ data: profile }, { data: adminRow }, { count }] = await Promise.all([
@@ -118,6 +123,15 @@ export const applyAiFix = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => ScanSchema.parse(i))
   .handler(async ({ data, context }) => {
+    const { data: siteRow } = await context.supabase
+      .from("sites")
+      .select("verification_status")
+      .eq("id", data.siteId)
+      .single();
+    if (!siteRow || siteRow.verification_status !== "verified") {
+      throw new Error("NOT_VERIFIED: Verify your domain before applying AI fixes.");
+    }
+
     // Find the latest scan for this site (RLS ensures it's the user's site).
     const { data: latest, error: findErr } = await context.supabase
       .from("compliance_scans")

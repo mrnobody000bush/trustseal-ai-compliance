@@ -124,7 +124,7 @@ function SitePage() {
         setUpgradeOpen(true);
         return;
       }
-      toast.error(msg);
+      toast.error(msg.replace(/^NOT_VERIFIED:\s*/, ""));
     },
   });
 
@@ -197,9 +197,9 @@ function SitePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleScan} disabled={scanBusy}>
-              <Play className="mr-2 h-4 w-4" />
-              {scanBusy ? "Scanning in background…" : "Run new scan"}
+            <Button onClick={handleScan} disabled={scanBusy || !isVerified} title={!isVerified ? "Verify domain ownership first" : undefined}>
+              {isVerified ? <Play className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+              {!isVerified ? "Verify domain to scan" : scanBusy ? "Scanning in background…" : "Run new scan"}
             </Button>
             <Button
               variant="outline"
@@ -210,6 +210,12 @@ function SitePage() {
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
+          {!isVerified && (
+            <span className="max-w-[260px] text-right text-[11px] text-muted-foreground">
+              Step 1 — connect and verify your domain below. Detailed audit reports and
+              &ldquo;Fix with TrustSeal AI&rdquo; unlock right after verification.
+            </span>
+          )}
           {scanBusy && (
             <span className="text-[11px] text-primary">
               Scan is running on our servers — you can keep browsing, results appear here automatically.
@@ -312,7 +318,13 @@ function SitePage() {
             <CompliancePatchReport siteName={site.name} siteDomain={site.domain} />
           )}
           <div className="mt-6 border-t border-border pt-6">
-            <FixWithAIButton siteId={site.id} currentScore={latest.score ?? null} />
+            {isVerified ? (
+              <FixWithAIButton siteId={site.id} currentScore={latest.score ?? null} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Verify domain ownership to unlock &ldquo;Fix with TrustSeal AI&rdquo;.
+              </p>
+            )}
           </div>
         </div>
       )}
