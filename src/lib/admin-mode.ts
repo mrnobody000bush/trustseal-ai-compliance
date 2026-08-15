@@ -53,7 +53,7 @@ export function useAdminMode(isAdmin: boolean) {
   // Non-admins never get admin mode privileges regardless of stored flag.
   const effectiveAdminMode = isAdmin && adminMode;
   const effectivePlan: Plan = effectiveAdminMode ? "scale" : plan;
-  const canFix = effectiveAdminMode || plan === "growth" || plan === "scale";
+  const canFix = effectiveAdminMode || PAID_PLANS.includes(plan);
 
   return { adminMode, effectiveAdminMode, plan, effectivePlan, canFix, setAdminMode, setPlan };
 }
