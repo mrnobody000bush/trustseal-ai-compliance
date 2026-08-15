@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
-export type Plan = "free" | "growth" | "scale";
+import type { PlanTier } from "@/lib/plan-tiers";
+import { PAID_PLANS } from "@/lib/plan-tiers";
+
+export type Plan = PlanTier;
 
 const ADMIN_MODE_KEY = "ts-admin-mode";
 const PLAN_KEY = "ts-simulated-plan";
