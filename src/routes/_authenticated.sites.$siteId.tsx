@@ -318,7 +318,13 @@ function SitePage() {
             <CompliancePatchReport siteName={site.name} siteDomain={site.domain} />
           )}
           <div className="mt-6 border-t border-border pt-6">
-            <FixWithAIButton siteId={site.id} currentScore={latest.score ?? null} />
+            {isVerified ? (
+              <FixWithAIButton siteId={site.id} currentScore={latest.score ?? null} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Verify domain ownership to unlock &ldquo;Fix with TrustSeal AI&rdquo;.
+              </p>
+            )}
           </div>
         </div>
       )}
