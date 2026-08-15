@@ -30,10 +30,15 @@ export const startScan = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: site, error: siteErr } = await context.supabase
       .from("sites")
-      .select("id")
+      .select("id, verification_status")
       .eq("id", data.siteId)
       .single();
     if (siteErr || !site) throw new Error("Site not found");
+    if (site.verification_status !== "verified") {
+      throw new Error(
+        "NOT_VERIFIED: Connect and verify your domain before running a compliance scan.",
+      );
+    }
 
     // --- server-side quota -------------------------------------------------
     const [{ data: profile }, { data: adminRow }, { count }] = await Promise.all([
