@@ -124,7 +124,7 @@ function SitePage() {
         setUpgradeOpen(true);
         return;
       }
-      toast.error(msg);
+      toast.error(msg.replace(/^NOT_VERIFIED:\s*/, ""));
     },
   });
 
