@@ -34,7 +34,7 @@ export function AdminToggle() {
   const target = onAdmin ? "/dashboard" : "/admin-panel";
   const label = onAdmin ? "Client view" : "Admin panel";
 
-  const plans: Plan[] = ["free", "growth", "scale"];
+  const plans: Plan[] = ["free", "growth", "scale", "team", "enterprise"];
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">

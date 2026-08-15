@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { setMyPlan } from "@/lib/plan.functions";
-import { Check, Sparkles, Zap, ShieldCheck } from "lucide-react";
+import { Check, Sparkles, Zap, ShieldCheck, Users, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useAdminMode, type Plan } from "@/lib/admin-mode";
+import { useAdminMode } from "@/lib/admin-mode";
 import { useFreeScanCount } from "@/lib/plan-limits";
+import { PLAN_TIERS, SubscriptionPlans, type SubscriptionPlan } from "@/lib/plan-tiers";
 
 export const Route = createFileRoute("/_authenticated/choose-plan")({
   head: () => ({
@@ -17,57 +18,15 @@ export const Route = createFileRoute("/_authenticated/choose-plan")({
   component: ChoosePlanPage,
 });
 
-type PlanOption = {
-  key: Plan;
-  name: string;
-  price: string;
-  desc: string;
-  features: string[];
-  highlight?: boolean;
-};
-
 function ChoosePlanPage() {
   const navigate = useNavigate();
   const setMyPlanFn = useServerFn(setMyPlan);
   const { setPlan } = useAdminMode(false);
   const { reset } = useFreeScanCount();
 
-  const plans: PlanOption[] = [
-    {
-      key: "free",
-      name: "Free",
-      price: "$0",
-      desc: "Try TrustSeal on one site.",
-      features: ["1 store", "3 compliance scans", "Basic EU AI Act score", "AI auto-fix locked"],
-    },
-    {
-      key: "growth",
-      name: "Growth",
-      price: "$99",
-      desc: "For growing brands ready for EU AI Act 2026.",
-      features: [
-        "Up to 5 stores",
-        "Full EU AI Act reports",
-        "Unlimited “Fix with TrustSeal AI”",
-        "Email support",
-      ],
-      highlight: true,
-    },
-    {
-      key: "scale",
-      name: "Scale",
-      price: "$299",
-      desc: "For agencies and multi-brand retailers.",
-      features: [
-        "Unlimited stores and scans",
-        "Branded PDF certificates",
-        "Priority support",
-        "White-label widget",
-      ],
-    },
-  ];
+  const plans = PLAN_TIERS.map((t) => SubscriptionPlans[t]);
 
-  const choose = async (plan: PlanOption) => {
+  const choose = async (plan: SubscriptionPlan) => {
     setPlan(plan.key);
     reset();
     if (typeof window !== "undefined") {
@@ -96,24 +55,28 @@ function ChoosePlanPage() {
         </p>
       </div>
 
-      <div className="mt-12 grid gap-6 md:grid-cols-3">
+      <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {plans.map((p) => (
           <div
             key={p.key}
-            className={`flex flex-col rounded-2xl border p-6 ${p.highlight ? "border-primary bg-primary/5 shadow-lg" : "border-border bg-card"}`}
+            className={`flex flex-col rounded-2xl border p-6 ${p.featured ? "border-primary bg-primary/5 shadow-lg" : "border-border bg-card"}`}
           >
             <div className="flex items-center gap-2 text-sm font-semibold">
               {p.key === "growth" ? (
                 <Zap className="h-4 w-4 text-primary" />
               ) : p.key === "scale" ? (
                 <Sparkles className="h-4 w-4 text-primary" />
+              ) : p.key === "team" ? (
+                <Users className="h-4 w-4 text-primary" />
+              ) : p.key === "enterprise" ? (
+                <Building2 className="h-4 w-4 text-primary" />
               ) : (
                 <ShieldCheck className="h-4 w-4 text-muted-foreground" />
               )}
               {p.name}
             </div>
             <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-4xl font-bold">{p.price}</span>
+              <span className="text-4xl font-bold">{p.priceLabel ?? `$${p.price}`}</span>
               <span className="text-muted-foreground">/mo</span>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">{p.desc}</p>
@@ -127,10 +90,10 @@ function ChoosePlanPage() {
             </ul>
             <Button
               className="mt-6 w-full"
-              variant={p.highlight ? "default" : p.key === "free" ? "outline" : "outline"}
+              variant={p.featured ? "default" : "outline"}
               onClick={() => choose(p)}
             >
-              {p.key === "free" ? "Continue with Free" : `Choose ${p.name}`}
+              {p.key === "free" ? "Continue with Free" : p.key === "enterprise" ? "Choose Enterprise" : `Choose ${p.name}`}
             </Button>
           </div>
         ))}
