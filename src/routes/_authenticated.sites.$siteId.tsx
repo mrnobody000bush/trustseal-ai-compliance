@@ -197,9 +197,9 @@ function SitePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleScan} disabled={scanBusy}>
-              <Play className="mr-2 h-4 w-4" />
-              {scanBusy ? "Scanning in background…" : "Run new scan"}
+            <Button onClick={handleScan} disabled={scanBusy || !isVerified} title={!isVerified ? "Verify domain ownership first" : undefined}>
+              {isVerified ? <Play className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+              {!isVerified ? "Verify domain to scan" : scanBusy ? "Scanning in background…" : "Run new scan"}
             </Button>
             <Button
               variant="outline"
