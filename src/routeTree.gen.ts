@@ -19,6 +19,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedChoosePlanRouteImport } from './routes/_authenticated.choose-plan'
 import { Route as AuthenticatedAdminPanelRouteImport } from './routes/_authenticated.admin-panel'
 import { Route as ApiPublicWidgetEventRouteImport } from './routes/api/public/widget-event'
+import { Route as ApiPublicWidgetChatRouteImport } from './routes/api/public/widget-chat'
 import { Route as ApiPublicPluginVerifyRouteImport } from './routes/api/public/plugin-verify'
 import { Route as ApiPublicAutoVerifyRouteImport } from './routes/api/public/auto-verify'
 import { Route as AuthenticatedSitesSiteIdRouteImport } from './routes/_authenticated.sites.$siteId'
@@ -75,6 +76,11 @@ const ApiPublicWidgetEventRoute = ApiPublicWidgetEventRouteImport.update({
   path: '/api/public/widget-event',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWidgetChatRoute = ApiPublicWidgetChatRouteImport.update({
+  id: '/api/public/widget-chat',
+  path: '/api/public/widget-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPluginVerifyRoute = ApiPublicPluginVerifyRouteImport.update({
   id: '/api/public/plugin-verify',
   path: '/api/public/plugin-verify',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
+  '/api/public/widget-chat': typeof ApiPublicWidgetChatRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
   '/api/public/cron/maintenance': typeof ApiPublicCronMaintenanceRoute
   '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
+  '/api/public/widget-chat': typeof ApiPublicWidgetChatRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
   '/api/public/cron/maintenance': typeof ApiPublicCronMaintenanceRoute
   '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/_authenticated/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
+  '/api/public/widget-chat': typeof ApiPublicWidgetChatRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
   '/api/public/cron/maintenance': typeof ApiPublicCronMaintenanceRoute
   '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/sites/$siteId'
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
+    | '/api/public/widget-chat'
     | '/api/public/widget-event'
     | '/api/public/cron/maintenance'
     | '/api/public/cron/weekly-rescan'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/sites/$siteId'
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
+    | '/api/public/widget-chat'
     | '/api/public/widget-event'
     | '/api/public/cron/maintenance'
     | '/api/public/cron/weekly-rescan'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sites/$siteId'
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
+    | '/api/public/widget-chat'
     | '/api/public/widget-event'
     | '/api/public/cron/maintenance'
     | '/api/public/cron/weekly-rescan'
@@ -226,6 +238,7 @@ export interface RootRouteChildren {
   WidgetDemoRoute: typeof WidgetDemoRoute
   ApiPublicAutoVerifyRoute: typeof ApiPublicAutoVerifyRoute
   ApiPublicPluginVerifyRoute: typeof ApiPublicPluginVerifyRoute
+  ApiPublicWidgetChatRoute: typeof ApiPublicWidgetChatRoute
   ApiPublicWidgetEventRoute: typeof ApiPublicWidgetEventRoute
   ApiPublicCronMaintenanceRoute: typeof ApiPublicCronMaintenanceRoute
   ApiPublicCronWeeklyRescanRoute: typeof ApiPublicCronWeeklyRescanRoute
@@ -304,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWidgetEventRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/widget-chat': {
+      id: '/api/public/widget-chat'
+      path: '/api/public/widget-chat'
+      fullPath: '/api/public/widget-chat'
+      preLoaderRoute: typeof ApiPublicWidgetChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/plugin-verify': {
       id: '/api/public/plugin-verify'
       path: '/api/public/plugin-verify'
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   WidgetDemoRoute: WidgetDemoRoute,
   ApiPublicAutoVerifyRoute: ApiPublicAutoVerifyRoute,
   ApiPublicPluginVerifyRoute: ApiPublicPluginVerifyRoute,
+  ApiPublicWidgetChatRoute: ApiPublicWidgetChatRoute,
   ApiPublicWidgetEventRoute: ApiPublicWidgetEventRoute,
   ApiPublicCronMaintenanceRoute: ApiPublicCronMaintenanceRoute,
   ApiPublicCronWeeklyRescanRoute: ApiPublicCronWeeklyRescanRoute,
