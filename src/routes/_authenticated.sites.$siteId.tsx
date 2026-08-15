@@ -210,6 +210,12 @@ function SitePage() {
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
+          {!isVerified && (
+            <span className="max-w-[260px] text-right text-[11px] text-muted-foreground">
+              Step 1 — connect and verify your domain below. Detailed audit reports and
+              &ldquo;Fix with TrustSeal AI&rdquo; unlock right after verification.
+            </span>
+          )}
           {scanBusy && (
             <span className="text-[11px] text-primary">
               Scan is running on our servers — you can keep browsing, results appear here automatically.
