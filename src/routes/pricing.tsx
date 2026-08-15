@@ -29,15 +29,16 @@ function PricingPage() {
           <h1 className="text-4xl font-bold">Simple pricing</h1>
           <p className="mt-3 text-muted-foreground">Cancel anytime. All plans include unlimited widget impressions.</p>
         </div>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((p) => (
             <div
               key={p.key}
               className={`rounded-2xl border p-6 ${p.featured ? "border-primary bg-primary/5 shadow-lg" : "border-border bg-card"}`}
             >
               <div className="text-sm font-medium text-muted-foreground">{p.name}</div>
+              <div className="text-xs text-muted-foreground">{p.seats === 999 ? "Unlimited seats" : `${p.seats} seat${p.seats > 1 ? "s" : ""}`}</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-4xl font-bold">${p.price}</span>
+                <span className="text-4xl font-bold">{p.priceLabel ?? `$${p.price}`}</span>
                 <span className="text-muted-foreground">/mo</span>
               </div>
               <p className="mt-3 text-sm text-muted-foreground">{p.desc}</p>

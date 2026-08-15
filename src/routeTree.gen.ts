@@ -15,10 +15,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated.team'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedChoosePlanRouteImport } from './routes/_authenticated.choose-plan'
 import { Route as AuthenticatedAdminPanelRouteImport } from './routes/_authenticated.admin-panel'
 import { Route as ApiPublicWidgetEventRouteImport } from './routes/api/public/widget-event'
+import { Route as ApiPublicWidgetChatRouteImport } from './routes/api/public/widget-chat'
 import { Route as ApiPublicPluginVerifyRouteImport } from './routes/api/public/plugin-verify'
 import { Route as ApiPublicAutoVerifyRouteImport } from './routes/api/public/auto-verify'
 import { Route as AuthenticatedSitesSiteIdRouteImport } from './routes/_authenticated.sites.$siteId'
@@ -55,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -73,6 +80,11 @@ const AuthenticatedAdminPanelRoute = AuthenticatedAdminPanelRouteImport.update({
 const ApiPublicWidgetEventRoute = ApiPublicWidgetEventRouteImport.update({
   id: '/api/public/widget-event',
   path: '/api/public/widget-event',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWidgetChatRoute = ApiPublicWidgetChatRouteImport.update({
+  id: '/api/public/widget-chat',
+  path: '/api/public/widget-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPluginVerifyRoute = ApiPublicPluginVerifyRouteImport.update({
@@ -118,9 +130,11 @@ export interface FileRoutesByFullPath {
   '/admin-panel': typeof AuthenticatedAdminPanelRoute
   '/choose-plan': typeof AuthenticatedChoosePlanRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
+  '/api/public/widget-chat': typeof ApiPublicWidgetChatRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
   '/api/public/cron/maintenance': typeof ApiPublicCronMaintenanceRoute
   '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
@@ -135,9 +149,11 @@ export interface FileRoutesByTo {
   '/admin-panel': typeof AuthenticatedAdminPanelRoute
   '/choose-plan': typeof AuthenticatedChoosePlanRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
+  '/api/public/widget-chat': typeof ApiPublicWidgetChatRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
   '/api/public/cron/maintenance': typeof ApiPublicCronMaintenanceRoute
   '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
@@ -154,9 +170,11 @@ export interface FileRoutesById {
   '/_authenticated/admin-panel': typeof AuthenticatedAdminPanelRoute
   '/_authenticated/choose-plan': typeof AuthenticatedChoosePlanRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/sites/$siteId': typeof AuthenticatedSitesSiteIdRoute
   '/api/public/auto-verify': typeof ApiPublicAutoVerifyRoute
   '/api/public/plugin-verify': typeof ApiPublicPluginVerifyRoute
+  '/api/public/widget-chat': typeof ApiPublicWidgetChatRoute
   '/api/public/widget-event': typeof ApiPublicWidgetEventRoute
   '/api/public/cron/maintenance': typeof ApiPublicCronMaintenanceRoute
   '/api/public/cron/weekly-rescan': typeof ApiPublicCronWeeklyRescanRoute
@@ -173,9 +191,11 @@ export interface FileRouteTypes {
     | '/admin-panel'
     | '/choose-plan'
     | '/dashboard'
+    | '/team'
     | '/sites/$siteId'
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
+    | '/api/public/widget-chat'
     | '/api/public/widget-event'
     | '/api/public/cron/maintenance'
     | '/api/public/cron/weekly-rescan'
@@ -190,9 +210,11 @@ export interface FileRouteTypes {
     | '/admin-panel'
     | '/choose-plan'
     | '/dashboard'
+    | '/team'
     | '/sites/$siteId'
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
+    | '/api/public/widget-chat'
     | '/api/public/widget-event'
     | '/api/public/cron/maintenance'
     | '/api/public/cron/weekly-rescan'
@@ -208,9 +230,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-panel'
     | '/_authenticated/choose-plan'
     | '/_authenticated/dashboard'
+    | '/_authenticated/team'
     | '/_authenticated/sites/$siteId'
     | '/api/public/auto-verify'
     | '/api/public/plugin-verify'
+    | '/api/public/widget-chat'
     | '/api/public/widget-event'
     | '/api/public/cron/maintenance'
     | '/api/public/cron/weekly-rescan'
@@ -226,6 +250,7 @@ export interface RootRouteChildren {
   WidgetDemoRoute: typeof WidgetDemoRoute
   ApiPublicAutoVerifyRoute: typeof ApiPublicAutoVerifyRoute
   ApiPublicPluginVerifyRoute: typeof ApiPublicPluginVerifyRoute
+  ApiPublicWidgetChatRoute: typeof ApiPublicWidgetChatRoute
   ApiPublicWidgetEventRoute: typeof ApiPublicWidgetEventRoute
   ApiPublicCronMaintenanceRoute: typeof ApiPublicCronMaintenanceRoute
   ApiPublicCronWeeklyRescanRoute: typeof ApiPublicCronWeeklyRescanRoute
@@ -276,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/team': {
+      id: '/_authenticated/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AuthenticatedTeamRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -302,6 +334,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/widget-event'
       fullPath: '/api/public/widget-event'
       preLoaderRoute: typeof ApiPublicWidgetEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/widget-chat': {
+      id: '/api/public/widget-chat'
+      path: '/api/public/widget-chat'
+      fullPath: '/api/public/widget-chat'
+      preLoaderRoute: typeof ApiPublicWidgetChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/plugin-verify': {
@@ -353,6 +392,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminPanelRoute: typeof AuthenticatedAdminPanelRoute
   AuthenticatedChoosePlanRoute: typeof AuthenticatedChoosePlanRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedSitesSiteIdRoute: typeof AuthenticatedSitesSiteIdRoute
 }
 
@@ -360,6 +400,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminPanelRoute: AuthenticatedAdminPanelRoute,
   AuthenticatedChoosePlanRoute: AuthenticatedChoosePlanRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedSitesSiteIdRoute: AuthenticatedSitesSiteIdRoute,
 }
 
@@ -376,6 +417,7 @@ const rootRouteChildren: RootRouteChildren = {
   WidgetDemoRoute: WidgetDemoRoute,
   ApiPublicAutoVerifyRoute: ApiPublicAutoVerifyRoute,
   ApiPublicPluginVerifyRoute: ApiPublicPluginVerifyRoute,
+  ApiPublicWidgetChatRoute: ApiPublicWidgetChatRoute,
   ApiPublicWidgetEventRoute: ApiPublicWidgetEventRoute,
   ApiPublicCronMaintenanceRoute: ApiPublicCronMaintenanceRoute,
   ApiPublicCronWeeklyRescanRoute: ApiPublicCronWeeklyRescanRoute,

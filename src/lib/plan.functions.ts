@@ -1,9 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { PLAN_SCAN_LIMITS, PLAN_TIERS, type PlanTier } from "@/lib/plan-tiers";
+import {
+  PLAN_SCAN_LIMITS,
+  PLAN_TIERS,
+  canExportAudit,
+  canUseTeams,
+  planSeats,
+  type PlanTier,
+} from "@/lib/plan-tiers";
 
-const PlanSchema = z.object({ plan: z.enum(["free", "growth", "scale"]) });
+const PlanSchema = z.object({ plan: z.enum(["free", "growth", "scale", "team", "enterprise"]) });
 
 function startOfTodayIso() {
   const d = new Date();
@@ -41,6 +48,9 @@ export const getMyPlan = createServerFn({ method: "GET" })
       isAdmin,
       used,
       limit: isAdmin ? null : limit,
+      seats: planSeats(plan),
+      canUseTeams: isAdmin || canUseTeams(plan),
+      canExportAudit: isAdmin || canExportAudit(plan),
       remaining: isAdmin ? null : Math.max(0, PLAN_SCAN_LIMITS[plan] - used),
     };
   });

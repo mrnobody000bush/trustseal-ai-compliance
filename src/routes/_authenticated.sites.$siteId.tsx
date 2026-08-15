@@ -30,6 +30,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QueryErrorState } from "@/components/query-error-state";
 import { buildWidgetSnippet } from "@/components/widget-snippet";
 import { AI_DISCLAIMER, checksLabel, complianceStatusLabel } from "@/lib/compliance-score";
+import { OnboardingStepper, type OnboardingStep } from "@/components/onboarding-stepper";
+import { AuditExport } from "@/components/audit-export";
+import { ExplainFindingButton } from "@/components/explain-finding-button";
 
 
 import { INDUSTRIES, isHighRisk, type Industry } from "@/lib/industry-rules";
@@ -161,6 +164,41 @@ function SitePage() {
   const isVerified = site.verification_status === "verified";
   const config = (site.widget_config as Record<string, unknown>) ?? {};
   const embedCode = buildWidgetSnippet(site.verification_token);
+  const hasCompletedScan = scans.some((s) => s.status === "completed");
+  const widgetLive = !!site.plugin_last_seen_at;
+  const onboardingDone = isVerified && hasCompletedScan && widgetLive;
+  const canExport = !!planInfo?.canExportAudit;
+
+  const onboardingSteps: OnboardingStep[] = [
+    {
+      title: "Store added",
+      description: `${site.name} — ${site.domain} is in your workspace.`,
+      state: "done",
+    },
+    {
+      title: "Connect & verify your domain",
+      description:
+        "Paste the one-line script (or install the WordPress plugin) — verification happens automatically on the first page load.",
+      state: isVerified ? "done" : "current",
+    },
+    {
+      title: "Run your first compliance scan",
+      description: "We crawl your storefront and produce an EU AI Act audit-readiness report.",
+      state: hasCompletedScan ? "done" : isVerified ? "current" : "todo",
+      action: (
+        <Button size="sm" onClick={handleScan} disabled={scanBusy}>
+          <Play className="mr-2 h-4 w-4" /> {scanBusy ? "Scanning…" : "Run first scan"}
+        </Button>
+      ),
+    },
+    {
+      title: "Show the trust widget",
+      description: widgetLive
+        ? "Your widget is live and serving shoppers."
+        : "Keep the script on your storefront — the badge appears automatically once it loads.",
+      state: widgetLive ? "done" : hasCompletedScan ? "current" : "todo",
+    },
+  ];
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -228,6 +266,8 @@ function SitePage() {
           )}
         </div>
       </div>
+
+      <OnboardingStepper steps={onboardingSteps} allDone={onboardingDone} />
 
       <ReverificationBanner
         status={site.verification_status}
@@ -313,6 +353,19 @@ function SitePage() {
           )}
           {latest.summary && <p className="mt-4 text-sm text-muted-foreground">{latest.summary}</p>}
           <p className="mt-2 text-[11px] text-muted-foreground">{AI_DISCLAIMER}</p>
+
+          {latest.status === "completed" && (
+            <AuditExport
+              siteName={site.name}
+              siteDomain={site.domain}
+              scanDate={latest.created_at}
+              score={latest.score}
+              summary={latest.summary}
+              findings={Array.isArray(latest.findings) ? (latest.findings as Array<Record<string, string>>) : []}
+              unlocked={canExport}
+              onLocked={() => { setUpgradeMsg("Audit export is available on Growth and higher plans."); setUpgradeOpen(true); }}
+            />
+          )}
 
           {latest.score === 100 && (
             <CompliancePatchReport siteName={site.name} siteDomain={site.domain} />
@@ -406,6 +459,7 @@ function SitePage() {
                           <div className="mt-2 font-medium">{f.title}</div>
                           <p className="mt-1 text-sm text-muted-foreground">{f.description}</p>
                           <p className="mt-2 text-sm"><span className="font-semibold">→ </span>{f.recommendation}</p>
+                          <ExplainFindingButton domain={site.domain} finding={f} />
                         </div>
                       ))}
                     </div>

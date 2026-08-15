@@ -31,6 +31,9 @@ export function SiteHeader() {
               <Button asChild variant="ghost" size="sm">
                 <Link to="/dashboard">Dashboard</Link>
               </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/team">Team</Link>
+              </Button>
               <Button
                 variant="outline"
                 size="icon"

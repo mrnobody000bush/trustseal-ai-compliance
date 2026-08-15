@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
-export type Plan = "free" | "growth" | "scale";
+import type { PlanTier } from "@/lib/plan-tiers";
+import { PAID_PLANS } from "@/lib/plan-tiers";
+
+export type Plan = PlanTier;
 
 const ADMIN_MODE_KEY = "ts-admin-mode";
 const PLAN_KEY = "ts-simulated-plan";
@@ -50,7 +53,7 @@ export function useAdminMode(isAdmin: boolean) {
   // Non-admins never get admin mode privileges regardless of stored flag.
   const effectiveAdminMode = isAdmin && adminMode;
   const effectivePlan: Plan = effectiveAdminMode ? "scale" : plan;
-  const canFix = effectiveAdminMode || plan === "growth" || plan === "scale";
+  const canFix = effectiveAdminMode || PAID_PLANS.includes(plan);
 
   return { adminMode, effectiveAdminMode, plan, effectivePlan, canFix, setAdminMode, setPlan };
 }
