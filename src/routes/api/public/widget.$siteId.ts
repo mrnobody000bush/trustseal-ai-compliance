@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { canUseWidgetChat } from "@/lib/plan-tiers";
 
 /** In-memory 60s cache: repeated widget hits never touch the DB. */
 const CACHE_TTL_MS = 60_000;
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/api/public/widget/$siteId")({
 
         const { data: site, error } = await supabase
           .from("sites")
-          .select("id, name, domain, widget_config, is_active")
+          .select("id, name, domain, widget_config, is_active, user_id")
           .eq(isUuid ? "id" : "verification_token", key)
           .eq("is_active", true)
           .eq("verification_status", "verified")
@@ -41,6 +42,12 @@ export const Route = createFileRoute("/api/public/widget/$siteId")({
             headers: cors({ "content-type": "application/json" }),
           });
         }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("plan")
+          .eq("id", site.user_id)
+          .maybeSingle();
 
         const { data: scans } = await supabase
           .from("compliance_scans")
@@ -59,6 +66,7 @@ export const Route = createFileRoute("/api/public/widget/$siteId")({
           score: latest?.score ?? null,
           summary: latest?.summary ?? null,
           scanned_at: latest?.created_at ?? null,
+          chat_enabled: canUseWidgetChat((profile as { plan?: string } | null)?.plan),
         });
 
         if (cache.size > 5000) cache.clear();

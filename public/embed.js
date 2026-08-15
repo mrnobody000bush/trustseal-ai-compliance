@@ -97,6 +97,13 @@
           ".ts-mut{color:" + muted + ";font-size:12px}" +
           ".ts-row{display:flex;align-items:center;gap:8px;margin-top:6px}" +
           ".ts-ok{color:" + accent + "}" +
+          ".ts-chat{margin-top:10px;padding-top:10px;border-top:1px solid " + border + "}" +
+          ".ts-log{max-height:150px;overflow:auto;font-size:12px}" +
+          ".ts-msg{margin-bottom:6px;line-height:1.4}" +
+          ".ts-me{color:" + muted + "}" +
+          ".ts-ask{display:flex;gap:6px;margin-top:8px}" +
+          ".ts-in{flex:1;min-width:0;padding:6px 8px;border:1px solid " + border + ";border-radius:8px;font:inherit;font-size:12px;background:transparent;color:inherit}" +
+          ".ts-send{padding:6px 10px;border:0;border-radius:8px;background:" + accent + ";color:#fff;font-size:12px;cursor:pointer}" +
           ".ts-foot{margin-top:10px;padding-top:10px;border-top:1px solid " + border + ";font-size:11px;color:" + muted + "}" +
           "</style>" +
           '<div class="ts-badge" id="b">' +
@@ -117,12 +124,53 @@
           (data && data.scanned_at
             ? '<div class="ts-row"><span class="ts-ok">●</span> Last audit: ' + new Date(data.scanned_at).toLocaleDateString() + '</div>'
             : "") +
+          (data && data.chat_enabled
+            ? '<div class="ts-chat">' +
+              '<div class="ts-log" id="log"></div>' +
+              '<div class="ts-ask"><input id="q" class="ts-in" maxlength="500" placeholder="Ask about this store\'s AI transparency" />' +
+              '<button id="send" class="ts-send">Ask</button></div>' +
+              '</div>'
+            : "") +
           '<div class="ts-foot">' + DISCLAIMER + '<br>trustseal-ai.com</div>' +
           '</div>';
 
         var badge = root.getElementById("b");
         var panel = root.getElementById("p");
         track("widget_impression");
+        var log = root.getElementById("log");
+        var input = root.getElementById("q");
+        var send = root.getElementById("send");
+        function addMsg(text, mine) {
+          var d = document.createElement("div");
+          d.className = "ts-msg" + (mine ? " ts-me" : "");
+          d.textContent = (mine ? "You: " : "TrustSeal: ") + text;
+          log.appendChild(d);
+          log.scrollTop = log.scrollHeight;
+        }
+        function ask() {
+          var q = (input.value || "").trim().slice(0, 500);
+          if (!q) return;
+          input.value = "";
+          addMsg(q, true);
+          send.disabled = true;
+          fetch(apiBase + "/api/public/widget-chat", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ token: token, message: q })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+              addMsg(res && res.reply ? res.reply : "Sorry, I can't answer right now.", false);
+            })
+            .catch(function () { addMsg("Sorry, I can't answer right now.", false); })
+            .then(function () { send.disabled = false; });
+        }
+        if (send && input) {
+          send.addEventListener("click", ask);
+          input.addEventListener("keydown", function (e) { if (e.key === "Enter") ask(); });
+          input.addEventListener("click", function (e) { e.stopPropagation(); });
+        }
+
         badge.addEventListener("click", function () {
           panel.classList.toggle("open");
           if (panel.classList.contains("open")) track("widget_click");
