@@ -133,8 +133,13 @@ export function DomainVerificationCard({
           {!verified && (
             <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
-              Waiting for the first ping from your website…
+              Listening for the first ping from your website… (auto-checks every 10s)
             </span>
+            {polledAt && (
+              <span className="text-[10px] text-muted-foreground/70">
+                Last checked {polledAt.toLocaleTimeString()}
+              </span>
+            )}
           )}
         </div>
       </div>
