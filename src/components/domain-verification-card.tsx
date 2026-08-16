@@ -82,6 +82,22 @@ export function DomainVerificationCard({
   const scriptTag = buildWidgetSnippet(token);
   const verified = status === "verified";
 
+  // While the site is not verified yet, poll the backend so the status flips
+  // to "Active Compliance" on its own as soon as the script pings us.
+  const [polledAt, setPolledAt] = useState<Date | null>(null);
+  const refreshRef = useRef(onRefresh);
+  refreshRef.current = onRefresh;
+
+  useEffect(() => {
+    if (verified) return;
+    const id = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      refreshRef.current();
+      setPolledAt(new Date());
+    }, 10_000);
+    return () => clearInterval(id);
+  }, [verified]);
+
   const copy = (text: string, key: "tag" | "token" | "script") => {
     navigator.clipboard.writeText(text);
     setCopied(key);
