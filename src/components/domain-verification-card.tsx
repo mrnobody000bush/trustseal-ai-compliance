@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -82,6 +82,22 @@ export function DomainVerificationCard({
   const scriptTag = buildWidgetSnippet(token);
   const verified = status === "verified";
 
+  // While the site is not verified yet, poll the backend so the status flips
+  // to "Active Compliance" on its own as soon as the script pings us.
+  const [polledAt, setPolledAt] = useState<Date | null>(null);
+  const refreshRef = useRef(onRefresh);
+  refreshRef.current = onRefresh;
+
+  useEffect(() => {
+    if (verified) return;
+    const id = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      refreshRef.current();
+      setPolledAt(new Date());
+    }, 10_000);
+    return () => clearInterval(id);
+  }, [verified]);
+
   const copy = (text: string, key: "tag" | "token" | "script") => {
     navigator.clipboard.writeText(text);
     setCopied(key);
@@ -115,10 +131,17 @@ export function DomainVerificationCard({
             {verified ? "Active Compliance" : "Pending Verification"}
           </Badge>
           {!verified && (
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Waiting for the first ping from your website…
-            </span>
+            <>
+              <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Listening for the first ping from your website… (auto-checks every 10s)
+              </span>
+              {polledAt && (
+                <span className="text-[10px] text-muted-foreground/70">
+                  Last checked {polledAt.toLocaleTimeString()}
+                </span>
+              )}
+            </>
           )}
         </div>
       </div>
